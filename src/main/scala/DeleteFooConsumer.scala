@@ -23,6 +23,7 @@ class DeleteFooConsumer[F[_]: Async](
     .withAutoOffsetReset(AutoOffsetReset.Earliest)
     .withEnableAutoCommit(false)
     .withGroupId("foo-delete-group")
+    .withPollInterval(1.second)
 
   def stream: Stream[F, Unit] = {
     KafkaConsumer

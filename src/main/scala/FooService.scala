@@ -2,20 +2,20 @@ package org.whsv26.tapir
 
 import Foo.FooId
 import FooService.FooAlreadyExists
+import cats.MonadThrow
 import cats.data.EitherT
-import cats.effect.kernel.Sync
 import cats.implicits._
 
-class FooService[F[_]: Sync](foos: FooRepositoryAlgebra[F]) {
+class FooService[F[_]: MonadThrow](foos: FooRepositoryAlgebra[F]) {
   def create(foo: Foo): EitherT[F, FooAlreadyExists, FooId] = {
     val fb = for {
       _ <- foos
         .findById(foo.id)
-        .ensure(FooAlreadyExists(foo))(_.isEmpty)
+        .ensure(FooAlreadyExists(foo.id))(_.isEmpty)
       id <- foos.create(foo)
     } yield id
 
-    EitherT.liftF(fb)
+    EitherT(fb.attemptNarrow[FooAlreadyExists])
   }
 
   def delete(id: FooId): F[Int] = foos.delete(id)
@@ -25,5 +25,5 @@ class FooService[F[_]: Sync](foos: FooRepositoryAlgebra[F]) {
 
 object FooService {
   sealed trait FooError extends Throwable
-  case class FooAlreadyExists(foo: Foo) extends FooError
+  case class FooAlreadyExists(fooId: FooId) extends FooError
 }
