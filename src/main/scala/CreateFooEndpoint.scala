@@ -20,11 +20,10 @@ class CreateFooEndpoint[F[_]: Sync](fooService: FooService[F]) {
     .serverLogic[F] { foo =>
       fooService
         .create(foo)
-        .attempt
-        .map(_.leftMap {
-          case FooAlreadyExists(foo) => s"Foo with id ${foo.id} already exists"
-          case err: Throwable => err.getMessage
-        })
+        .leftMap {
+          case FooAlreadyExists(foo) => s"Foo ${foo.id} already exists"
+        }
+        .value
     }
 }
 
