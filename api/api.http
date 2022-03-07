@@ -1,0 +1,19 @@
+### Hello world
+GET {{url}}/hello-world?whom=whsv26
+Accept: application/json
+
+### Delete foo
+DELETE {{url}}/foo/258d1c4f-19b2-43a8-8063-b44c2391b38b
+Accept: application/json
+
+### Create foo
+POST {{url}}/foo
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id": "258d1c4f-19b2-43a8-8063-b44c2391b26b",
+  "a": 999,
+  "b": false
+}
+
