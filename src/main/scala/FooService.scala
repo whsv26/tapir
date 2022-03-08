@@ -10,17 +10,18 @@ class FooService[F[_]: MonadThrow](
   validation: FooValidationAlgebra[F],
 ) {
 
-  def create(foo: Foo): EitherT[F, FooAlreadyExists, FooId] =
+  def create(id: FooId, createFoo: CreateFoo): EitherT[F, FooAlreadyExists, FooId] =
     for {
-      _ <- validation.doesNotExist(foo.id)
-      id <- EitherT.liftF(foos.create(foo))
-    } yield id
+      _ <- validation.doesNotExist(id)
+      foo <- EitherT.liftF(foos.create(id, createFoo))
+    } yield foo.id
 
-  def delete(id: FooId): EitherT[F, FooDoesNotExist, Int] =
+
+  def delete(id: FooId): EitherT[F, FooDoesNotExist, Unit] =
     for {
       _ <- validation.exist(id)
-      id <- EitherT.liftF(foos.delete(id))
-    } yield id
+      _ <- EitherT.liftF(foos.delete(id))
+    } yield ()
 
 
   def findById(id: FooId): F[Option[Foo]] =

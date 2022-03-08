@@ -3,6 +3,7 @@ package org.whsv26.tapir
 import Foo.FooId
 import SlickFooRepositoryInterpreter.foos
 import cats.effect.Async
+import cats.implicits._
 import slick.dbio.{DBIOAction, NoStream}
 import slick.jdbc.JdbcBackend.DatabaseDef
 import slick.jdbc.PostgresProfile.api._
@@ -22,14 +23,14 @@ class SlickFooRepositoryInterpreter[F[_]: Async](
     run(query)
   }
 
-  override def create(foo: Foo): F[FooId] = {
-    val stmt = (foos returning foos.map(_.id)) += foo
+  override def create(id: FooId, foo: CreateFoo): F[Foo] = {
+    val stmt = (foos returning foos) += Foo(id, foo.a, foo.b)
     run(stmt)
   }
 
-  override def delete(id: FooId): F[Int] = {
+  override def delete(id: FooId): F[Unit] = {
     val stmt = foos.filter(_.id === id).delete
-    run(stmt)
+    run(stmt).void
   }
 }
 

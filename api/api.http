@@ -3,7 +3,7 @@ GET {{url}}/hello-world?whom=whsv26
 Accept: application/json
 
 ### Delete foo
-DELETE {{url}}/foo/258d1c4f-19b2-43a8-8063-b44c2391b26b
+DELETE {{url}}/foo/5ef7a170-87a2-4c54-be9c-1da9165d90a8
 Accept: application/json
 
 ### Create foo
@@ -12,7 +12,6 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "id": "258d1c4f-19b2-43a8-8063-b44c2391b26b",
   "a": 999,
   "b": false
 }
