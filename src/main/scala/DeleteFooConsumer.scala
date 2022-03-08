@@ -33,6 +33,7 @@ class DeleteFooConsumer[F[_]: Async](
       .mapAsync(25) { committable =>
         foos
           .delete(committable.record.value)
+          .value
           .as(committable.offset)
       }
       .through(commitBatchWithin(500, 10.seconds))

@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 
 import Foo.FooId
-import FooService.FooAlreadyExists
+import FooValidationAlgebra.FooAlreadyExists
 import cats.effect.kernel.Sync
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass

@@ -1,29 +1,28 @@
 package org.whsv26.tapir
 
 import Foo.FooId
-import FooService.FooAlreadyExists
+import FooValidationAlgebra.{FooAlreadyExists, FooDoesNotExist}
 import cats.MonadThrow
 import cats.data.EitherT
-import cats.implicits._
 
-class FooService[F[_]: MonadThrow](foos: FooRepositoryAlgebra[F]) {
-  def create(foo: Foo): EitherT[F, FooAlreadyExists, FooId] = {
-    val fb = for {
-      _ <- foos
-        .findById(foo.id)
-        .ensure(FooAlreadyExists(foo.id))(_.isEmpty)
-      id <- foos.create(foo)
+class FooService[F[_]: MonadThrow](
+  foos: FooRepositoryAlgebra[F],
+  validation: FooValidationAlgebra[F],
+) {
+
+  def create(foo: Foo): EitherT[F, FooAlreadyExists, FooId] =
+    for {
+      _ <- validation.doesNotExist(foo.id)
+      id <- EitherT.liftF(foos.create(foo))
     } yield id
 
-    EitherT(fb.attemptNarrow[FooAlreadyExists])
-  }
+  def delete(id: FooId): EitherT[F, FooDoesNotExist, Int] =
+    for {
+      _ <- validation.exist(id)
+      id <- EitherT.liftF(foos.delete(id))
+    } yield id
 
-  def delete(id: FooId): F[Int] = foos.delete(id)
 
-  def findById(id: FooId): F[Option[Foo]] = foos.findById(id)
-}
-
-object FooService {
-  sealed trait FooError extends Throwable
-  case class FooAlreadyExists(fooId: FooId) extends FooError
+  def findById(id: FooId): F[Option[Foo]] =
+    foos.findById(id)
 }

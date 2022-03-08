@@ -38,7 +38,8 @@ object Main extends IOApp {
     for {
       db <- dbRes[F]
       fooRepository = new SlickFooRepositoryInterpreter[F](db)
-      fooService = new FooService[F](fooRepository)
+      fooValidation = new FooValidationInterpreter[F](fooRepository)
+      fooService = new FooService[F](fooRepository, fooValidation)
       deleteFooConsumer = new DeleteFooConsumer[F](fooService, conf)
       deleteFooProducer = new DeleteFooProducer[F](conf)
       routes = makeRoutes[F](List(
