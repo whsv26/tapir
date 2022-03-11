@@ -1,9 +1,14 @@
 package org.whsv26.tapir
 
-import Config.AppConfig
+import config.Config.AppConfig
+import domain.foos.{FooService, FooValidationInterpreter}
+import infrastructure.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint}
+import infrastructure.endpoint.hello.HelloWorldEndpoint
+import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
+import infrastructure.repository.slick.SlickFooRepositoryInterpreter
 
-import cats.effect.kernel.Async
 import cats.effect._
+import cats.effect.kernel.Async
 import cats.implicits._
 import fs2.Stream
 import org.http4s.HttpRoutes

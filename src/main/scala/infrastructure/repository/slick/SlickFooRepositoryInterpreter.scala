@@ -1,7 +1,11 @@
 package org.whsv26.tapir
+package infrastructure.repository.slick
 
-import Foo.FooId
-import SlickFooRepositoryInterpreter.foos
+import domain.foos.Foo.FooId
+import domain.foos.{Foo, FooRepositoryAlgebra}
+import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
+import infrastructure.repository.slick.SlickFooRepositoryInterpreter.foos
+
 import cats.effect.Async
 import cats.implicits._
 import slick.dbio.{DBIOAction, NoStream}

@@ -1,13 +1,19 @@
 package org.whsv26.tapir
+package infrastructure.endpoint.foos
 
-import Foo.FooId
-import FooValidationAlgebra.FooAlreadyExists
+import domain.foos.Foo.FooId
+import domain.foos.FooService
+import domain.foos.FooValidationAlgebra.FooAlreadyExists
+import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
 
 import cats.effect.kernel.Sync
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint.Full
+
 import java.util.UUID
 
 class CreateFooEndpoint[F[_]: Sync](fooService: FooService[F]) {
@@ -32,4 +38,11 @@ class CreateFooEndpoint[F[_]: Sync](fooService: FooService[F]) {
 object CreateFooEndpoint {
   def apply[F[_]: Sync](fooService: FooService[F]): Full[Unit, Unit, CreateFoo, String, FooId, Any, F] =
     new CreateFooEndpoint[F](fooService).createFoo
+
+  final case class CreateFoo(a: Int, b: Boolean)
+
+  object CreateFoo {
+    implicit val encoder: Encoder[CreateFoo] = deriveEncoder[CreateFoo]
+    implicit val decoder: Decoder[CreateFoo] = deriveDecoder[CreateFoo]
+  }
 }

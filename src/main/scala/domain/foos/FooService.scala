@@ -1,7 +1,10 @@
 package org.whsv26.tapir
+package domain.foos
 
-import Foo.FooId
-import FooValidationAlgebra.{FooAlreadyExists, FooDoesNotExist}
+import domain.foos.Foo.FooId
+import domain.foos.FooValidationAlgebra.{FooAlreadyExists, FooDoesNotExist}
+import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
+
 import cats.MonadThrow
 import cats.data.EitherT
 

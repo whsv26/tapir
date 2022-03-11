@@ -1,11 +1,15 @@
 package org.whsv26.tapir
+package infrastructure.messaging.kafka
 
-import Config.AppConfig
-import Foo.FooId
+import config.Config.AppConfig
+import domain.foos.Foo.FooId
+import domain.foos.FooService
+
 import cats.effect.kernel.Async
 import cats.implicits._
-import fs2.kafka._
 import fs2.Stream
+import fs2.kafka._
+
 import scala.concurrent.duration._
 
 class DeleteFooConsumer[F[_]: Async](

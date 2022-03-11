@@ -1,6 +1,7 @@
 package org.whsv26.tapir
+package infrastructure.endpoint.hello
 
-import cats.{Applicative, Id}
+import cats.Applicative
 import cats.implicits._
 import sttp.tapir._
 import sttp.tapir.json.circe.jsonBody

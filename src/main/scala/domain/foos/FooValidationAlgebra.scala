@@ -1,4 +1,5 @@
 package org.whsv26.tapir
+package domain.foos
 
 import Foo.FooId
 import FooValidationAlgebra._

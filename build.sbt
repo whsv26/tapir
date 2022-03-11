@@ -11,6 +11,8 @@ val doobieVersion = "0.13.4"
 val slickVersion = "3.3.3"
 val postgresVersion = "42.3.3"
 val kafkaVersion = "2.8.0"
+val fs2KafkaVersion = "3.0.0-M4"
+val tsecVersion = "0.4.0"
 
 lazy val root = (project in file("."))
   .settings(
@@ -22,29 +24,36 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-core" % tapirVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % tapirVersion,
-  "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion
-)
+  "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
 
-libraryDependencies += "org.http4s" %% "http4s-blaze-server" % http4sVersion
-libraryDependencies += "ch.qos.logback"  % "logback-classic" % logbackVersion
-libraryDependencies += "com.github.pureconfig" %% "pureconfig" % pureConfigVersion
+  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+  "ch.qos.logback"  % "logback-classic" % logbackVersion,
+  "com.github.pureconfig" %% "pureconfig" % pureConfigVersion,
 
-libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % slickVersion,
   "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
   "org.postgresql" % "postgresql" % postgresVersion,
-)
 
-libraryDependencies ++= Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
-  "io.circe" %% "circe-parser" % circeVersion
-)
+  "io.circe" %% "circe-parser" % circeVersion,
 
-libraryDependencies ++= Seq(
   "org.apache.kafka" % "kafka-clients" % kafkaVersion,
   "org.apache.kafka" % "kafka-streams" % kafkaVersion,
   "org.apache.kafka" %% "kafka-streams-scala" % kafkaVersion,
+
+  "com.github.fd4s" %% "fs2-kafka" % fs2KafkaVersion,
+
+  "io.github.jmcardon" %% "tsec-common" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-password" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-cipher-jca" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-cipher-bouncy" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-mac" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-signatures" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-hash-jca" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-hash-bouncy" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-jwt-mac" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-jwt-sig" % tsecVersion,
+  "io.github.jmcardon" %% "tsec-http4s" % tsecVersion
 )
 
-libraryDependencies += "com.github.fd4s" %% "fs2-kafka" % "3.0.0-M4"
