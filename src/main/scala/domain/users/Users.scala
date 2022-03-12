@@ -1,5 +1,5 @@
 package org.whsv26.tapir
-package domain.auth
+package domain.users
 
 import java.util.UUID
 
@@ -15,10 +15,11 @@ object Users {
     password: PasswordHash
   )
 
-  case class UserId(value: UUID)
+  sealed trait UserIdentity
+  case class UserId(value: UUID) extends UserIdentity
+  case class UserName(value: String) extends UserIdentity
 
-  case class UserName(value: String)
-
+  case class PlainPassword(value: String)
   case class PasswordHash(value: String)
 
 }
