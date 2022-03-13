@@ -14,20 +14,13 @@ class DeleteFooEndpoint[F[_]: Async](
   producer: DeleteFooProducer[F]
 ) extends ApiEndpoint {
 
-  private val action = endpoint
-    .in(prefix / "foo" / path[FooId]("fooId") )
-    .delete
-    .serverLogic[F] { foo =>
-      producer
-        .produce(foo)
-        .map(_ => ().asRight[Unit])
-    }
-}
-
-object DeleteFooEndpoint {
-  def apply[F[_]: Async](
-    producer: DeleteFooProducer[F]
-  ): Full[Unit, Unit, FooId, Unit, Unit, Any, F] = {
-    new DeleteFooEndpoint[F](producer).action
-  }
+  val action: Full[Unit, Unit, FooId, Unit, Unit, Any, F] =
+    endpoint
+      .in(prefix / "foo" / path[FooId]("fooId") )
+      .delete
+      .serverLogic[F] { foo =>
+        producer
+          .produce(foo)
+          .map(_ => ().asRight[Unit])
+      }
 }

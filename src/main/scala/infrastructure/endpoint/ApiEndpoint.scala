@@ -4,5 +4,5 @@ package infrastructure.endpoint
 import sttp.tapir._
 
 trait ApiEndpoint {
-  val prefix: EndpointInput[Unit] = "api" / "v1"
+  protected val prefix: EndpointInput[Unit] = "api" / "v1"
 }

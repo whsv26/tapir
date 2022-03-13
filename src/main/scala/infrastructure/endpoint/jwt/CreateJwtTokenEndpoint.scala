@@ -18,38 +18,36 @@ class CreateJwtTokenEndpoint[F[+_]: Sync](
   auth: AuthService[F]
 ) extends ApiEndpoint {
 
-  private val action = endpoint
-    .in(prefix / "token")
-    .post
-    .in(jsonBody[CreateJwtToken])
-    .out(jsonBody[String])
-    .errorOut(statusCode
-      .description(StatusCode.NotFound, "User not found")
-      .description(StatusCode.BadRequest, "Invalid password")
-      .and(stringBody)
-      .mapTo[ErrorInfo]
-    )
-    .serverLogic[F] { in => auth
-      .signIn(UserName(in.name), PlainPassword(in.password))
-      .map(_.value)
-      .leftMap {
-        case UserNotFound(name) => ErrorInfo(
-          StatusCode.NotFound,
-          s"User with name '$name' is not found"
-        )
-        case InvalidPassword => ErrorInfo(
-          StatusCode.BadRequest,
-          "Invalid password"
-        )
+  val action: Full[Unit, Unit, CreateJwtToken, ErrorInfo, String, Any, F] =
+    endpoint
+      .in(prefix / "token")
+      .post
+      .in(jsonBody[CreateJwtToken])
+      .out(jsonBody[String])
+      .errorOut(statusCode
+        .description(StatusCode.NotFound, "User not found")
+        .description(StatusCode.BadRequest, "Invalid password")
+        .and(stringBody)
+        .mapTo[ErrorInfo]
+      )
+      .serverLogic[F] { in => auth
+        .signIn(UserName(in.name), PlainPassword(in.password))
+        .map(_.value)
+        .leftMap {
+          case UserNotFound(name) => ErrorInfo(
+            StatusCode.NotFound,
+            s"User with name '$name' is not found"
+          )
+          case InvalidPassword => ErrorInfo(
+            StatusCode.BadRequest,
+            "Invalid password"
+          )
+        }
+        .value
       }
-      .value
-    }
 }
 
 object CreateJwtTokenEndpoint {
-  def apply[F[+_]: Sync](auth: AuthService[F]): Full[Unit, Unit, CreateJwtToken, ErrorInfo, String, Any, F] =
-    new CreateJwtTokenEndpoint[F](auth).action
-
   case class CreateJwtToken(
     name: String,
     password: String

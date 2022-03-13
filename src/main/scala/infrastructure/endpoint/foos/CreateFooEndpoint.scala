@@ -24,44 +24,38 @@ class CreateFooEndpoint[F[_]: Sync](
   jwtTokenAlg: JwtTokenAlgebra[F],
 ) extends ApiEndpoint {
 
-  private val action = endpoint
-    .in(prefix / "foo")
-    .post
-    .in(jsonBody[CreateFoo])
-    .out(jsonBody[FooId])
-    .errorOut(statusCode
-      .description(StatusCode.Conflict, "Already exists")
-      .and(stringBody)
-      .mapTo[ErrorInfo]
-    )
-    .securityIn(auth.bearer[JwtToken]())
-    .serverSecurityLogic[UserId, F] { token =>
-      jwtTokenAlg
-        .verifyToken(token)
-        .leftMap(_ => ErrorInfo(StatusCode.Unauthorized, "Invalid JWT-token"))
-        .value
-    }
-    .serverLogic { _ => command =>
-      fooService
-        .create(UUID.randomUUID, command)
-        .leftMap {
-          case FooAlreadyExists(id) => ErrorInfo(
-            StatusCode.Conflict,
-            s"Foo $id already exists"
-          )
-        }
-        .value
-    }
+  val action: Full[JwtToken, UserId, CreateFoo, ErrorInfo, FooId, Any, F] =
+    endpoint
+      .in(prefix / "foo")
+      .post
+      .in(jsonBody[CreateFoo])
+      .securityIn(auth.bearer[JwtToken]())
+      .out(jsonBody[FooId])
+      .errorOut(statusCode
+        .description(StatusCode.Conflict, "Already exists")
+        .and(stringBody)
+        .mapTo[ErrorInfo]
+      )
+      .serverSecurityLogic[UserId, F] { token =>
+        jwtTokenAlg
+          .verifyToken(token)
+          .leftMap(err => ErrorInfo(StatusCode.Unauthorized, err.cause))
+          .value
+      }
+      .serverLogic { _ => command =>
+        fooService
+          .create(UUID.randomUUID, command)
+          .leftMap {
+            case FooAlreadyExists(id) => ErrorInfo(
+              StatusCode.Conflict,
+              s"Foo $id already exists"
+            )
+          }
+          .value
+      }
 }
 
 object CreateFooEndpoint {
-  def apply[F[_]: Sync](
-    fooService: FooService[F],
-    jwtTokenAlg: JwtTokenAlgebra[F],
-  ): Full[JwtToken, UserId, CreateFoo, ErrorInfo, FooId, Any, F] = {
-    new CreateFooEndpoint[F](fooService, jwtTokenAlg).action
-  }
-
   final case class CreateFoo(a: Int, b: Boolean)
 
   object CreateFoo {

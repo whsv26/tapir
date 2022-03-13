@@ -57,10 +57,10 @@ object Main extends IOApp {
       deleteFooProducer = new DeleteFooProducer[F](conf)
 
       routes = makeRoutes[F](List(
-        HelloWorldEndpoint[F],
-        CreateFooEndpoint[F](fooService, jwtTokenAlg),
-        DeleteFooEndpoint[F](deleteFooProducer),
-        CreateJwtTokenEndpoint[F](authService),
+        new HelloWorldEndpoint[F].action,
+        new CreateFooEndpoint[F](fooService, jwtTokenAlg).action,
+        new DeleteFooEndpoint[F](deleteFooProducer).action,
+        new CreateJwtTokenEndpoint[F](authService).action,
       ))
     } yield {
       makeServerStream(routes)
