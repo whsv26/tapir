@@ -1,9 +1,11 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
+import domain.auth.{JwtToken, JwtTokenAlgebra}
 import domain.foos.Foo.FooId
 import domain.foos.FooService
 import domain.foos.FooValidationAlgebra.FooAlreadyExists
+import domain.users.Users.UserId
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
 import infrastructure.endpoint.{ApiEndpoint, ErrorInfo}
 
@@ -18,7 +20,8 @@ import sttp.tapir.server.ServerEndpoint.Full
 import java.util.UUID
 
 class CreateFooEndpoint[F[_]: Sync](
-  fooService: FooService[F]
+  fooService: FooService[F],
+  jwtTokenAlg: JwtTokenAlgebra[F],
 ) extends ApiEndpoint {
 
   private val action = endpoint
@@ -31,7 +34,14 @@ class CreateFooEndpoint[F[_]: Sync](
       .and(stringBody)
       .mapTo[ErrorInfo]
     )
-    .serverLogic[F] { command =>
+    .securityIn(auth.bearer[JwtToken]())
+    .serverSecurityLogic[UserId, F] { token =>
+      jwtTokenAlg
+        .verifyToken(token)
+        .leftMap(_ => ErrorInfo(StatusCode.Unauthorized, "Invalid JWT-token"))
+        .value
+    }
+    .serverLogic { _ => command =>
       fooService
         .create(UUID.randomUUID, command)
         .leftMap {
@@ -45,8 +55,12 @@ class CreateFooEndpoint[F[_]: Sync](
 }
 
 object CreateFooEndpoint {
-  def apply[F[_]: Sync](fooService: FooService[F]): Full[Unit, Unit, CreateFoo, ErrorInfo, FooId, Any, F] =
-    new CreateFooEndpoint[F](fooService).action
+  def apply[F[_]: Sync](
+    fooService: FooService[F],
+    jwtTokenAlg: JwtTokenAlgebra[F],
+  ): Full[JwtToken, UserId, CreateFoo, ErrorInfo, FooId, Any, F] = {
+    new CreateFooEndpoint[F](fooService, jwtTokenAlg).action
+  }
 
   final case class CreateFoo(a: Int, b: Boolean)
 

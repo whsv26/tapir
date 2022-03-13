@@ -31,7 +31,7 @@ class CreateJwtTokenEndpoint[F[+_]: Sync](
     )
     .serverLogic[F] { in => auth
       .signIn(UserName(in.name), PlainPassword(in.password))
-      .map(_.token)
+      .map(_.value)
       .leftMap {
         case UserNotFound(name) => ErrorInfo(
           StatusCode.NotFound,

@@ -8,6 +8,10 @@ Accept: application/json
   "password": "123456"
 }
 
+> {%
+client.global.set("jwtToken", response.body);
+%}
+
 ### Hello world
 GET {{url}}/hello-world?whom=whsv26
 Accept: application/json
@@ -20,6 +24,7 @@ Accept: application/json
 POST {{url}}/foo
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{jwtToken}}
 
 {
   "a": 999,

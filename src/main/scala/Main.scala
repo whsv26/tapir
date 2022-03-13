@@ -58,7 +58,7 @@ object Main extends IOApp {
 
       routes = makeRoutes[F](List(
         HelloWorldEndpoint[F],
-        CreateFooEndpoint[F](fooService),
+        CreateFooEndpoint[F](fooService, jwtTokenAlg),
         DeleteFooEndpoint[F](deleteFooProducer),
         CreateJwtTokenEndpoint[F](authService),
       ))
