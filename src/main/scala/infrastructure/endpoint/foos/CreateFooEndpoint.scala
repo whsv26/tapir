@@ -5,16 +5,16 @@ import domain.foos.Foo.FooId
 import domain.foos.FooService
 import domain.foos.FooValidationAlgebra.FooAlreadyExists
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
+import infrastructure.endpoint.{ApiEndpoint, ErrorInfo}
 
 import cats.effect.kernel.Sync
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import org.whsv26.tapir.infrastructure.endpoint.ApiEndpoint
+import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint.Full
-
 import java.util.UUID
 
 class CreateFooEndpoint[F[_]: Sync](
@@ -26,19 +26,26 @@ class CreateFooEndpoint[F[_]: Sync](
     .post
     .in(jsonBody[CreateFoo])
     .out(jsonBody[FooId])
-    .errorOut(jsonBody[ErrorInfo].description("Already exists"))
+    .errorOut(statusCode
+      .description(StatusCode.Conflict, "Already exists")
+      .and(stringBody)
+      .mapTo[ErrorInfo]
+    )
     .serverLogic[F] { command =>
       fooService
         .create(UUID.randomUUID, command)
         .leftMap {
-          case FooAlreadyExists(id) => s"Foo $id already exists"
+          case FooAlreadyExists(id) => ErrorInfo(
+            StatusCode.Conflict,
+            s"Foo $id already exists"
+          )
         }
         .value
     }
 }
 
 object CreateFooEndpoint {
-  def apply[F[_]: Sync](fooService: FooService[F]): Full[Unit, Unit, CreateFoo, String, FooId, Any, F] =
+  def apply[F[_]: Sync](fooService: FooService[F]): Full[Unit, Unit, CreateFoo, ErrorInfo, FooId, Any, F] =
     new CreateFooEndpoint[F](fooService).action
 
   final case class CreateFoo(a: Int, b: Boolean)
