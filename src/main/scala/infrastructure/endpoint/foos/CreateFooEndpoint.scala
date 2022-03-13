@@ -9,6 +9,7 @@ import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
 import cats.effect.kernel.Sync
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import org.whsv26.tapir.infrastructure.endpoint.ApiEndpoint
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
@@ -16,11 +17,12 @@ import sttp.tapir.server.ServerEndpoint.Full
 
 import java.util.UUID
 
-class CreateFooEndpoint[F[_]: Sync](fooService: FooService[F]) {
-  type ErrorInfo = String
+class CreateFooEndpoint[F[_]: Sync](
+  fooService: FooService[F]
+) extends ApiEndpoint {
 
-  private val createFoo = endpoint
-    .in("api" / "v1" / "foo")
+  private val action = endpoint
+    .in(prefix / "foo")
     .post
     .in(jsonBody[CreateFoo])
     .out(jsonBody[FooId])
@@ -37,7 +39,7 @@ class CreateFooEndpoint[F[_]: Sync](fooService: FooService[F]) {
 
 object CreateFooEndpoint {
   def apply[F[_]: Sync](fooService: FooService[F]): Full[Unit, Unit, CreateFoo, String, FooId, Any, F] =
-    new CreateFooEndpoint[F](fooService).createFoo
+    new CreateFooEndpoint[F](fooService).action
 
   final case class CreateFoo(a: Int, b: Boolean)
 

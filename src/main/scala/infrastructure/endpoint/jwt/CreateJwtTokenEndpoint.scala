@@ -4,6 +4,7 @@ package infrastructure.endpoint.jwt
 import domain.auth.AuthService
 import domain.auth.AuthService.{InvalidPassword, UserNotFound}
 import domain.users.Users.{PlainPassword, UserName}
+import infrastructure.endpoint.ApiEndpoint
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint.CreateJwtToken
 import cats.effect.kernel.Sync
 import io.circe.generic.auto._
@@ -12,9 +13,12 @@ import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint.Full
 
-class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
+class CreateJwtTokenEndpoint[F[+_]: Sync](
+  auth: AuthService[F]
+) extends ApiEndpoint {
+
   private val action = endpoint
-    .in("api" / "v1" / "token")
+    .in(prefix / "token")
     .post
     .in(jsonBody[CreateJwtToken])
     .out(jsonBody[String])
