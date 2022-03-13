@@ -3,7 +3,7 @@ package domain.auth
 
 import domain.users.Users.{PasswordHash, PlainPassword}
 
-trait PasswordHasherAlgebra[F[_]] {
+trait HasherAlgebra[F[_]] {
   def hashPassword(pass: PlainPassword): F[PasswordHash]
   def verifyPassword(lhs: PlainPassword, rhs: PasswordHash): F[Boolean]
 }

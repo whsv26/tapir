@@ -4,14 +4,13 @@ package domain.auth
 import domain.auth.AuthService._
 import domain.users.UserRepositoryAlgebra
 import domain.users.Users.{PlainPassword, UserName}
-
 import cats.Monad
 import cats.data.EitherT
 
 class AuthService[F[+_]: Monad](
   tokens: JwtTokenAlgebra[F],
   users: UserRepositoryAlgebra[F],
-  hasher: PasswordHasherAlgebra[F]
+  hasher: HasherAlgebra[F]
 ) {
 
   def signIn(name: UserName, pass: PlainPassword): EitherT[F, AuthError, JwtToken] =
@@ -19,7 +18,7 @@ class AuthService[F[+_]: Monad](
       // find user
       user <- EitherT.fromOptionF(
         users.findByName(name),
-        UserNotFound(name)
+        UserNotFound(name.value)
       )
 
       // verify password
@@ -34,6 +33,6 @@ class AuthService[F[+_]: Monad](
 
 object AuthService {
   sealed trait AuthError extends Throwable
-  case class UserNotFound(name: UserName) extends AuthError
+  case class UserNotFound(name: String) extends AuthError
   case object InvalidPassword extends AuthError
 }

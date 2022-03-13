@@ -3,7 +3,7 @@ package org.whsv26.tapir
 import config.Config.AppConfig
 import domain.auth.{AuthService, JwtClockAlgebra}
 import domain.foos.{FooService, FooValidationInterpreter}
-import infrastructure.auth.{JwtTokenAlgebraInterpreter, PasswordHasherAlgebraInterpreter}
+import infrastructure.auth.{JwtTokenAlgebraInterpreter, BcryptHasherAlgebraInterpreter}
 import infrastructure.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint}
 import infrastructure.endpoint.hello.HelloWorldEndpoint
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint
@@ -50,7 +50,7 @@ object Main extends IOApp {
       userRepositoryAlg = new InMemoryUserRepositoryInterpreter[F]
       jwtClockAlg = JwtClockAlgebra[F]
       jwtTokenAlg = new JwtTokenAlgebraInterpreter[F](conf.jwt, jwtClockAlg)
-      hasherAlg = new PasswordHasherAlgebraInterpreter[F](12)
+      hasherAlg = new BcryptHasherAlgebraInterpreter[F](12)
       fooService = new FooService[F](fooRepositoryAlg, fooValidationAlg)
       authService = new AuthService[F](jwtTokenAlg, userRepositoryAlg, hasherAlg)
       deleteFooConsumer = new DeleteFooConsumer[F](fooService, conf)

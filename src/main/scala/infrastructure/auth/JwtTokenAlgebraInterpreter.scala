@@ -2,8 +2,8 @@ package org.whsv26.tapir
 package infrastructure.auth
 
 import config.Config.JwtConfig
-import org.whsv26.tapir.domain.users.Users.UserId
 import domain.auth.{JwtClockAlgebra, JwtToken, JwtTokenAlgebra}
+import domain.users.Users.UserId
 import infrastructure.auth.JwtTokenAlgebraInterpreter.UnableToDecodeJwtPrivateKey
 
 import cats.MonadThrow
