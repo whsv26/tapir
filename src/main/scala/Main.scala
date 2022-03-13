@@ -1,12 +1,15 @@
 package org.whsv26.tapir
 
 import config.Config.AppConfig
+import domain.auth.{AuthService, JwtClockAlgebra}
 import domain.foos.{FooService, FooValidationInterpreter}
+import infrastructure.auth.{JwtTokenAlgebraInterpreter, PasswordHasherAlgebraInterpreter}
 import infrastructure.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint}
 import infrastructure.endpoint.hello.HelloWorldEndpoint
+import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint
 import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
+import infrastructure.repository.inmemory.InMemoryUserRepositoryInterpreter
 import infrastructure.repository.slick.SlickFooRepositoryInterpreter
-
 import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
@@ -39,18 +42,25 @@ object Main extends IOApp {
     Resource.make(acquire)(release)
   }
 
-  private def makeAppStream[F[_]: Async]: Resource[F, Stream[F, Unit]] = {
+  private def makeAppStream[F[+_]: Async]: Resource[F, Stream[F, Unit]] = {
     for {
       db <- dbRes[F]
-      fooRepository = new SlickFooRepositoryInterpreter[F](db)
-      fooValidation = new FooValidationInterpreter[F](fooRepository)
-      fooService = new FooService[F](fooRepository, fooValidation)
+      fooRepositoryAlg = new SlickFooRepositoryInterpreter[F](db)
+      fooValidationAlg = new FooValidationInterpreter[F](fooRepositoryAlg)
+      userRepositoryAlg = new InMemoryUserRepositoryInterpreter[F]
+      jwtClockAlg = JwtClockAlgebra[F]
+      jwtTokenAlg = new JwtTokenAlgebraInterpreter[F](conf.jwt, jwtClockAlg)
+      hasherAlg = new PasswordHasherAlgebraInterpreter[F](12)
+      fooService = new FooService[F](fooRepositoryAlg, fooValidationAlg)
+      authService = new AuthService[F](jwtTokenAlg, userRepositoryAlg, hasherAlg)
       deleteFooConsumer = new DeleteFooConsumer[F](fooService, conf)
       deleteFooProducer = new DeleteFooProducer[F](conf)
+
       routes = makeRoutes[F](List(
         HelloWorldEndpoint[F],
         CreateFooEndpoint[F](fooService),
         DeleteFooEndpoint[F](deleteFooProducer),
+        CreateJwtTokenEndpoint[F](authService),
       ))
     } yield {
       makeServerStream(routes)

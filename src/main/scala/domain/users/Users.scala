@@ -15,10 +15,8 @@ object Users {
     password: PasswordHash
   )
 
-  sealed trait UserIdentity
-  case class UserId(value: UUID) extends UserIdentity
-  case class UserName(value: String) extends UserIdentity
-
+  case class UserId(value: UUID)
+  case class UserName(value: String)
   case class PlainPassword(value: String)
   case class PasswordHash(value: String)
 

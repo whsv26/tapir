@@ -2,7 +2,7 @@ package org.whsv26.tapir
 package domain.users
 
 import domain.users.UserValidationAlgebra.{UserAlreadyExists, UserDoesNotExist}
-import domain.users.Users.{UserId, UserIdentity}
+import domain.users.Users._
 import cats.data.EitherT
 
 trait UserValidationAlgebra[F[_]] {
@@ -12,6 +12,6 @@ trait UserValidationAlgebra[F[_]] {
 
 object UserValidationAlgebra {
   sealed trait UserValidationError extends Throwable
-  case class UserAlreadyExists(id: UserIdentity) extends UserValidationError
-  case class UserDoesNotExist(id: UserIdentity) extends UserValidationError
+  case class UserAlreadyExists(identity: String) extends UserValidationError
+  case class UserDoesNotExist(identity: String) extends UserValidationError
 }

@@ -13,6 +13,7 @@ val postgresVersion = "42.3.3"
 val kafkaVersion = "2.8.0"
 val fs2KafkaVersion = "3.0.0-M4"
 val tsecVersion = "0.4.0"
+val newTypeVersion = "0.4.4"
 
 lazy val root = (project in file("."))
   .settings(
@@ -54,6 +55,8 @@ libraryDependencies ++= Seq(
   "io.github.jmcardon" %% "tsec-hash-bouncy" % tsecVersion,
   "io.github.jmcardon" %% "tsec-jwt-mac" % tsecVersion,
   "io.github.jmcardon" %% "tsec-jwt-sig" % tsecVersion,
-  "io.github.jmcardon" %% "tsec-http4s" % tsecVersion
+  "io.github.jmcardon" %% "tsec-http4s" % tsecVersion,
+
+  "io.estatico" %% "newtype" % newTypeVersion,
 )
 
