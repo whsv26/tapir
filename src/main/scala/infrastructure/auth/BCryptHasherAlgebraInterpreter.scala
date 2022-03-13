@@ -9,7 +9,7 @@ import cats.implicits._
 import tsec.passwordhashers
 import tsec.passwordhashers.jca.BCrypt
 
-class BcryptHasherAlgebraInterpreter[F[_]: Sync](
+class BCryptHasherAlgebraInterpreter[F[_]: Sync](
   rounds: Int = 12
 ) extends HasherAlgebra[F] {
 

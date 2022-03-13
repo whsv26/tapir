@@ -31,12 +31,14 @@ class JwtTokenAlgebraInterpreter[F[_]: Sync](
           .toRight(UnableToDecodeJwtPrivateKey)
       })
 
-      now = clock.instant()
+      issuedAt = clock.instant()
+      expiredAt = issuedAt.plus(conf.expiry, ChronoUnit.SECONDS)
+
       claims = JWTClaims()
-        .withIssuer("whsv26")
+        .withIssuer(conf.issuer)
         .withSubject(id.value.toString)
-        .withIAT(now)
-        .withExpiry(now.plus(7, ChronoUnit.DAYS))
+        .withIAT(issuedAt)
+        .withExpiry(expiredAt)
 
       privateKey <- SHA256withECDSA.buildPrivateKey[F](privateKeyBytes)
       jwtSignature <- JWTSig.signAndBuild[F, SHA256withECDSA](claims, privateKey)

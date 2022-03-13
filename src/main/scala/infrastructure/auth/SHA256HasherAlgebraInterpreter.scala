@@ -8,7 +8,7 @@ import cats.implicits._
 import tsec.hashing.jca.SHA256
 import tsec.common._
 
-class Sha256HasherAlgebraInterpreter[F[_]: Sync] extends HasherAlgebra[F] {
+class SHA256HasherAlgebraInterpreter[F[_]: Sync] extends HasherAlgebra[F] {
   override def hashPassword(pass: PlainPassword): F[PasswordHash] =
     SHA256.hash[F](pass.value.utf8Bytes)
       .map(bytes => PasswordHash(bytes.toB64String))

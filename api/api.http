@@ -1,3 +1,13 @@
+### Create JWT-token
+POST {{url}}/token
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "whsv26",
+  "password": "123456"
+}
+
 ### Hello world
 GET {{url}}/hello-world?whom=whsv26
 Accept: application/json
@@ -16,12 +26,3 @@ Accept: application/json
   "b": false
 }
 
-### Create JWT-token
-POST {{url}}/token
-Content-Type: application/json
-Accept: application/json
-
-{
-  "name": "whsv26",
-  "password": "123456"
-}
