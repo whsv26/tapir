@@ -23,7 +23,7 @@ abstract class SecureApiEndpoint[F[_]: Functor](
    * With this approach, OpenAPI error discrimination is impossible
    * todo think about alternatives
    */
-  protected val secureEndpoint: PartialServerEndpoint[JwtToken, UserId, Unit, ErrorInfo, Unit, Any, F] =
+  protected val secureEndpoint: PartialServerEndpoint[JwtToken, UserId, Unit, ErrorInfo, Unit, Any, F] = {
     endpoint
       .securityIn(auth.bearer[JwtToken]())
       .errorOut(statusCode.and(stringBody).mapTo[ErrorInfo])
@@ -33,4 +33,5 @@ abstract class SecureApiEndpoint[F[_]: Functor](
           .leftMap(err => ErrorInfo(StatusCode.Unauthorized, err.cause))
           .value
       }
+  }
 }

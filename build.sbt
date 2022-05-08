@@ -18,7 +18,10 @@ val newTypeVersion = "0.4.4"
 lazy val root = (project in file("."))
   .settings(
     name := "tapir",
-    idePackagePrefix := Some("org.whsv26.tapir")
+    idePackagePrefix := Some("org.whsv26.tapir"),
+    scalacOptions ++= Seq(
+      "-Ymacro-annotations"
+    ),
   )
 
 libraryDependencies ++= Seq(
@@ -57,6 +60,7 @@ libraryDependencies ++= Seq(
   "io.github.jmcardon" %% "tsec-jwt-sig" % tsecVersion,
   "io.github.jmcardon" %% "tsec-http4s" % tsecVersion,
 
+  "io.estatico" %% "newtype" % newTypeVersion,
   "io.estatico" %% "newtype" % newTypeVersion,
 )
 

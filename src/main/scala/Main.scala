@@ -78,7 +78,7 @@ object Main extends IOApp {
     )
 
     Http4sServerInterpreter[F].toRoutes(apiEndpoints) <+>
-    Http4sServerInterpreter[F].toRoutes(swaggerEndpoints)
+    Http4sServerInterpreter[F].toRoutes(swaggerEndpoints) // docs
   }
 
   private def makeServerStream[F[_]: Async](routes: HttpRoutes[F]): Stream[F, Unit] = {

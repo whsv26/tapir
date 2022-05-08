@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.jwt
 
-import domain.auth.AuthService
+import domain.auth.{AuthService, JwtToken}
 import domain.auth.AuthService.{InvalidPassword, UserNotFound}
 import domain.users.{PlainPassword, UserName}
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint.CreateJwtToken
@@ -19,12 +19,12 @@ class CreateJwtTokenEndpoint[F[+_]: Sync](
   auth: AuthService[F]
 ) extends ApiEndpoint {
 
-  val action: Full[Unit, Unit, CreateJwtToken, ErrorInfo, String, Any, F] =
+  val action: Full[Unit, Unit, CreateJwtToken, ErrorInfo, JwtToken, Any, F] =
     endpoint
       .in(prefix / "token")
       .post
       .in(jsonBody[CreateJwtToken])
-      .out(jsonBody[String])
+      .out(jsonBody[JwtToken])
       .errorOut(statusCode
         .description(StatusCode.NotFound, "User not found")
         .description(StatusCode.BadRequest, "Invalid password")
@@ -33,7 +33,6 @@ class CreateJwtTokenEndpoint[F[+_]: Sync](
       )
       .serverLogic[F] { in => auth
         .signIn(UserName(in.name), PlainPassword(in.password))
-        .map(_.value)
         .leftMap {
           case UserNotFound(name) => ErrorInfo(
             StatusCode.NotFound,
