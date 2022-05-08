@@ -1,7 +1,6 @@
 package org.whsv26.tapir
 package domain.foos
 
-import Foo.FooId
 import FooValidationAlg._
 import cats.data.EitherT
 

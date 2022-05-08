@@ -2,8 +2,7 @@ package org.whsv26.tapir
 package infrastructure.messaging.kafka
 
 import config.Config.AppConfig
-import domain.foos.Foo.FooId
-import domain.foos.FooService
+import domain.foos.{FooId, FooService}
 
 import cats.effect.kernel.Async
 import cats.implicits._
@@ -18,8 +17,8 @@ class DeleteFooConsumer[F[_]: Async](
 ) {
 
   private val baseSettings = ConsumerSettings[F, FooId, FooId](
-    Deserializer.uuid[F],
-    Deserializer.uuid[F],
+    Deserializer.uuid[F].map(FooId.apply),
+    Deserializer.uuid[F].map(FooId.apply),
   )
 
   private val consumerSettings = baseSettings

@@ -2,8 +2,7 @@ package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
 import domain.auth.{JwtToken, JwtTokenAlg}
-import domain.foos.Foo.FooId
-import domain.foos.FooService
+import domain.foos.{FooId, FooService}
 import domain.foos.FooValidationAlg.FooAlreadyExists
 import domain.users.UserId
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
@@ -40,7 +39,7 @@ class CreateFooEndpoint[F[_]: Sync](
       .serverSecurityLogic[UserId, F](securityLogic)
       .serverLogic { _ => command =>
         fooService
-          .create(UUID.randomUUID, command)
+          .create(FooId(UUID.randomUUID), command)
           .leftMap {
             case FooAlreadyExists(id) => ErrorInfo(
               StatusCode.Conflict,

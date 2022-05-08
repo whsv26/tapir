@@ -1,7 +1,6 @@
 package org.whsv26.tapir
 package domain.foos
 
-import domain.foos.Foo.FooId
 import domain.foos.FooValidationAlg.{FooAlreadyExists, FooDoesNotExist}
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
 

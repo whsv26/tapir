@@ -1,8 +1,7 @@
 package org.whsv26.tapir
 package infrastructure.repository.slick
 
-import domain.foos.Foo.FooId
-import domain.foos.{Foo, FooRepositoryAlg}
+import domain.foos.{Foo, FooId, FooRepositoryAlg}
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
 import infrastructure.repository.slick.SlickFooRepositoryInterpreter.foos
 
@@ -12,6 +11,8 @@ import slick.dbio.{DBIOAction, NoStream}
 import slick.jdbc.JdbcBackend.DatabaseDef
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.ProvenShape
+
+import java.util.UUID
 
 class SlickFooRepositoryInterpreter[F[_]: Async](
   db: DatabaseDef
@@ -23,7 +24,7 @@ class SlickFooRepositoryInterpreter[F[_]: Async](
   }
 
   override def findById(id: FooId): F[Option[Foo]] = {
-    val query = foos.filter(_.id === id).result.headOption
+    val query = foos.filter(_.id === id.value).result.headOption
     run(query)
   }
 
@@ -33,18 +34,21 @@ class SlickFooRepositoryInterpreter[F[_]: Async](
   }
 
   override def delete(id: FooId): F[Unit] = {
-    val stmt = foos.filter(_.id === id).delete
+    val stmt = foos.filter(_.id === id.value).delete
     run(stmt).void
   }
 }
 
 object SlickFooRepositoryInterpreter {
   class Foos(tag: Tag) extends Table[Foo](tag, "foos") {
-    def id: Rep[FooId] = column[FooId]("id", O.PrimaryKey)
+    def id: Rep[UUID] = column[UUID]("id", O.PrimaryKey)
     def a: Rep[Int] = column[Int]("a")
     def b: Rep[Boolean] = column[Boolean]("b")
 
-    def * : ProvenShape[Foo] = (id, a, b) <> ((Foo.apply _).tupled, Foo.unapply)
+    def * : ProvenShape[Foo] = (id, a, b) <>[Foo] (
+      { case (id, a, b) => Foo(FooId(id), a, b) },
+      { case Foo(id, a, b) => (id.value, a, b).some }
+    )
   }
 
   val foos = TableQuery[Foos]
