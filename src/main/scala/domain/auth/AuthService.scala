@@ -2,12 +2,12 @@ package org.whsv26.tapir
 package domain.auth
 
 import domain.auth.AuthService._
-import domain.users.{PlainPassword, UserName, UserRepositoryAlg}
+import domain.users._
 
 import cats.Monad
-import cats.data.EitherT
+import cats.data.{EitherT, OptionT}
 
-class AuthService[F[+_]: Monad](
+class AuthService[F[_]: Monad](
   tokens: JwtTokenAlg[F],
   users: UserRepositoryAlg[F],
   hasher: HasherAlg[F]
@@ -15,20 +15,23 @@ class AuthService[F[+_]: Monad](
 
   def signIn(name: UserName, pass: PlainPassword): EitherT[F, AuthError, JwtToken] =
     for {
-      // find user
-      user <- EitherT.fromOptionF(
-        users.findByName(name),
-        UserNotFoundByName(name.value)
-      )
-
-      // verify password
-      _ <- EitherT.liftF(hasher.verifyPassword(pass, user.password))
-        .ensure(InvalidUserPassword)(identity)
-
-      // generate jwt token
+      user <- findUser(name)
+      _ <- verifyPassword(pass, user.password)
       token <- EitherT.liftF(tokens.generateToken(user.id))
-
     } yield token
+
+  private def findUser(
+    name: UserName
+  ): EitherT[F, UserNotFoundByName, UserWithPassword] =
+    OptionT(users.findByName(name))
+      .toRight(UserNotFoundByName(name.value))
+
+  private def verifyPassword(
+    plain: PlainPassword,
+    hashed: PasswordHash
+  ): EitherT[F, InvalidUserPassword.type, Boolean] =
+    EitherT.liftF(hasher.verifyPassword(plain, hashed))
+      .ensure(InvalidUserPassword)(identity)
 }
 
 object AuthService {
