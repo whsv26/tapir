@@ -3,7 +3,7 @@ package infrastructure.repository.slick
 
 import domain.foos.{Foo, FooId, FooRepositoryAlg}
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
-import infrastructure.repository.slick.SlickFooRepositoryInterpreter.foos
+import infrastructure.repository.slick.SlickFooRepositoryAlgInterpreter.foos
 
 import cats.effect.Async
 import cats.implicits._
@@ -16,7 +16,7 @@ import slick.lifted.ProvenShape
 
 import java.util.UUID
 
-class SlickFooRepositoryInterpreter[F[_]: Async](
+class SlickFooRepositoryAlgInterpreter[F[_]: Async](
   db: DatabaseDef
 ) extends FooRepositoryAlg[F] {
 
@@ -41,7 +41,7 @@ class SlickFooRepositoryInterpreter[F[_]: Async](
   }
 }
 
-object SlickFooRepositoryInterpreter {
+object SlickFooRepositoryAlgInterpreter {
   class Foos(tag: Tag) extends Table[Foo](tag, "foos") {
     def id: Rep[UUID] = column[UUID]("id", O.PrimaryKey)
     def a: Rep[Int] = column[Int]("a")

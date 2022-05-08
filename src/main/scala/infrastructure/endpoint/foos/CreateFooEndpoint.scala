@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
-import domain.auth.{JwtToken, JwtTokenAlg}
+import domain.auth.{Token, TokenAlg}
 import domain.foos.FooValidationAlg.FooAlreadyExists
 import domain.foos.{FooId, FooService}
 import domain.users.UserId
@@ -13,8 +13,8 @@ import util.tapir.securedEndpoint
 import cats.effect.kernel.Sync
 import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
 import io.circe.refined._
+import io.circe.{Decoder, Encoder}
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
@@ -23,12 +23,12 @@ import sttp.tapir.server.ServerEndpoint.Full
 import java.util.UUID
 
 class CreateFooEndpoint[F[_]: Sync](
-  fooService: FooService[F],
-  jwtTokenAlg: JwtTokenAlg[F],
+  foos: FooService[F],
+  tokens: TokenAlg[F],
 ) {
 
-  val action: Full[JwtToken, UserId, CreateFoo, ErrorInfo, FooId, Any, F] =
-    securedEndpoint(jwtTokenAlg)
+  val action: Full[Token, UserId, CreateFoo, ErrorInfo, FooId, Any, F] =
+    securedEndpoint(tokens)
       .summary("Create new foo")
       .post
       .in("api" / "v1" / "foo")
@@ -41,11 +41,8 @@ class CreateFooEndpoint[F[_]: Sync](
           .mapTo[ErrorInfo]
       ))
       .serverLogic { _ => command =>
-        fooService
-          .create(FooId(UUID.randomUUID), command)
-          .leftMap {
-            case FooAlreadyExists(id) => AlreadyExists(id.value.toString)
-          }
+        foos.create(FooId(UUID.randomUUID), command)
+          .leftMap { case FooAlreadyExists(id) => AlreadyExists(id.value.toString) }
           .value
       }
 }

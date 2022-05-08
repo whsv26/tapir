@@ -2,7 +2,7 @@ package org.whsv26.tapir
 package infrastructure.endpoint.jwt
 
 import domain.auth.AuthService.{InvalidUserPassword, UserNotFoundByName}
-import domain.auth.{AuthService, JwtToken}
+import domain.auth.{AuthService, Token}
 import domain.users.{PlainPassword, UserName}
 import infrastructure.endpoint.ErrorInfo
 import infrastructure.endpoint.ErrorInfo.User.{InvalidPassword, NotFoundByName}
@@ -17,13 +17,13 @@ import sttp.tapir.server.ServerEndpoint.Full
 
 class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
 
-  val action: Full[Unit, Unit, CreateJwtToken, ErrorInfo, JwtToken, Any, F] =
+  val action: Full[Unit, Unit, CreateJwtToken, ErrorInfo, Token, Any, F] =
     endpoint
       .summary("Sign in")
       .in("api" / "v1" / "token")
       .post
       .in(jsonBody[CreateJwtToken])
-      .out(jsonBody[JwtToken])
+      .out(jsonBody[Token])
       .errorOut(statusCode
         .description(NotFoundByName.status, NotFoundByName.format)
         .description(InvalidPassword.status, InvalidPassword.format)

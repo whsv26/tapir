@@ -1,10 +1,10 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
-import domain.auth.{JwtToken, JwtTokenAlg}
+import domain.auth.{Token, TokenAlg}
 import domain.foos.FooId
 import domain.users.UserId
-import infrastructure.endpoint.{ApiEndpoint, ErrorInfo}
+import infrastructure.endpoint.ErrorInfo
 import infrastructure.messaging.kafka.DeleteFooProducer
 import util.tapir.securedEndpoint
 
@@ -15,11 +15,11 @@ import sttp.tapir.server.ServerEndpoint.Full
 
 class DeleteFooEndpoint[F[_]: Async](
   producer: DeleteFooProducer[F],
-  jwtTokenAlg: JwtTokenAlg[F],
-) extends ApiEndpoint {
+  tokens: TokenAlg[F],
+) {
 
-  val action: Full[JwtToken, UserId, FooId, ErrorInfo, Unit, Any, F] =
-    securedEndpoint(jwtTokenAlg)
+  val action: Full[Token, UserId, FooId, ErrorInfo, Unit, Any, F] =
+    securedEndpoint(tokens)
       .summary("Delete foo")
       .delete
       .in("api" / "v1" / "foo" / path[FooId]("fooId"))

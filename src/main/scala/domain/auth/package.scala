@@ -6,13 +6,13 @@ import io.estatico.newtype.macros._
 import sttp.tapir.{Codec, CodecFormat, Schema}
 
 package object auth {
-  @newtype case class JwtToken(value: String)
+  @newtype case class Token(value: String)
 
-  object JwtToken {
-    implicit val decoder: Decoder[JwtToken] = deriving
-    implicit val encoder: Encoder[JwtToken] = deriving
-    implicit val schema: Schema[JwtToken] = deriving
-    implicit val codec: Codec[String, JwtToken, CodecFormat.TextPlain] =
-      Codec.string.map[JwtToken](JwtToken(_))(_.value)
+  object Token {
+    implicit val decoder: Decoder[Token] = deriving
+    implicit val encoder: Encoder[Token] = deriving
+    implicit val schema: Schema[Token] = deriving
+    implicit val codec: Codec[String, Token, CodecFormat.TextPlain] =
+      Codec.string.map[Token](Token(_))(_.value)
   }
 }

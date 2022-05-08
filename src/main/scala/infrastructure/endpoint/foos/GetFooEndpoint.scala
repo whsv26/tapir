@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
-import domain.auth.{JwtToken, JwtTokenAlg}
+import domain.auth.{Token, TokenAlg}
 import domain.foos.{Foo, FooId, FooService}
 import domain.users.UserId
 import infrastructure.endpoint.ErrorInfo
@@ -17,10 +17,10 @@ import sttp.tapir.server.ServerEndpoint.Full
 
 class GetFooEndpoint[F[_]: Sync](
   fooService: FooService[F],
-  jwtTokenAlg: JwtTokenAlg[F],
+  tokens: TokenAlg[F],
 ) {
-  val action: Full[JwtToken, UserId, FooId, ErrorInfo, Foo, Any, F] =
-    securedEndpoint(jwtTokenAlg)
+  val action: Full[Token, UserId, FooId, ErrorInfo, Foo, Any, F] =
+    securedEndpoint(tokens)
       .summary("Get foo info")
       .get
       .in("api" / "v1" / "foo")

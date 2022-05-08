@@ -2,10 +2,10 @@ package org.whsv26.tapir
 package infrastructure.auth
 
 import config.Config.JwtConfig
-import domain.auth.JwtTokenAlg.JwtTokenVerificationError
-import domain.auth.{JwtClockAlg, JwtToken, JwtTokenAlg}
+import domain.auth.TokenAlg.TokenVerificationError
+import domain.auth.{JwtClockAlg, Token, TokenAlg}
 import domain.users.UserId
-import infrastructure.auth.JwtTokenInterpreter.UnableToDecodeJwtPrivateKey
+import infrastructure.auth.JwtTokenAlgInterpreter.UnableToDecodeJwtPrivateKey
 
 import cats.data.EitherT
 import cats.effect.kernel.Sync
@@ -18,12 +18,12 @@ import tsec.signature.jca.{GeneralSignatureError, SHA256withECDSA}
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-class JwtTokenInterpreter[F[_]: Sync](
+class JwtTokenAlgInterpreter[F[_]: Sync](
   conf: JwtConfig,
   clockAlg: JwtClockAlg[F],
-) extends JwtTokenAlg[F] {
+) extends TokenAlg[F] {
 
-  override def verifyToken(token: JwtToken): EitherT[F, JwtTokenVerificationError, UserId] = {
+  override def verifyToken(token: Token): EitherT[F, TokenVerificationError, UserId] = {
     val pubKeyBytes = conf.publicKey
       .b64Bytes
       .getOrElse(Array.empty)
@@ -36,12 +36,12 @@ class JwtTokenInterpreter[F[_]: Sync](
 
     EitherT {
       verified
-        .adaptError { case GeneralSignatureError(s) => JwtTokenVerificationError(s) }
-        .attemptNarrow[JwtTokenVerificationError]
+        .adaptError { case GeneralSignatureError(s) => TokenVerificationError(s) }
+        .attemptNarrow[TokenVerificationError]
     }
   }
 
-  override def generateToken(id: UserId): F[JwtToken] =
+  override def generateToken(id: UserId): F[Token] =
     for {
       privateKeyBytes <- Sync[F].delay {
         conf.privateKey.b64Bytes.toRight(UnableToDecodeJwtPrivateKey)
@@ -49,7 +49,7 @@ class JwtTokenInterpreter[F[_]: Sync](
       privateKey <- SHA256withECDSA.buildPrivateKey[F](privateKeyBytes)
       claims <- buildClaims(id)
       jwtSignature <- JWTSig.signAndBuild[F, SHA256withECDSA](claims, privateKey)
-    } yield JwtToken(jwtSignature.toEncodedString)
+    } yield Token(jwtSignature.toEncodedString)
 
   private def buildClaims(id: UserId): F[JWTClaims] =
     for {
@@ -63,6 +63,6 @@ class JwtTokenInterpreter[F[_]: Sync](
       .withExpiry(expiredAt)
 }
 
-object JwtTokenInterpreter {
+object JwtTokenAlgInterpreter {
   case object UnableToDecodeJwtPrivateKey extends Throwable
 }

@@ -7,13 +7,13 @@ import domain.users._
 import cats.Monad
 import cats.data.{EitherT, OptionT}
 
-class AuthService[F[_]: Monad](
-  tokens: JwtTokenAlg[F],
+final class AuthService[F[_]: Monad](
+  tokens: TokenAlg[F],
   users: UserRepositoryAlg[F],
   hasher: HasherAlg[F]
 ) {
 
-  def signIn(name: UserName, pass: PlainPassword): EitherT[F, AuthError, JwtToken] =
+  def signIn(name: UserName, pass: PlainPassword): EitherT[F, AuthError, Token] =
     for {
       user <- findUser(name)
       _ <- verifyPassword(pass, user.password)

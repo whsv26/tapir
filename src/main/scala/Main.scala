@@ -3,12 +3,12 @@ package org.whsv26.tapir
 import config.Config.AppConfig
 import domain.auth.{AuthService, JwtClockAlg}
 import domain.foos.{FooService, FooValidationInterpreter}
-import infrastructure.auth.{BCryptHasherInterpreter, JwtTokenInterpreter}
+import infrastructure.auth.{BCryptHasherAlgInterpreter, JwtTokenAlgInterpreter}
 import infrastructure.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint, GetFooEndpoint}
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint
 import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
-import infrastructure.repository.inmemory.MemoryUserRepositoryInterpreter
-import infrastructure.repository.slick.SlickFooRepositoryInterpreter
+import infrastructure.repository.inmemory.MemUserRepositoryAlgInterpreter
+import infrastructure.repository.slick.SlickFooRepositoryAlgInterpreter
 
 import cats.effect._
 import cats.effect.kernel.Async
@@ -46,12 +46,12 @@ object Main extends IOApp {
   private def makeAppStream[F[+_]: Async]: Resource[F, Stream[F, Unit]] = {
     for {
       db <- dbRes[F]
-      fooRepositoryAlg = new SlickFooRepositoryInterpreter[F](db)
+      fooRepositoryAlg = new SlickFooRepositoryAlgInterpreter[F](db)
       fooValidationAlg = new FooValidationInterpreter[F](fooRepositoryAlg)
-      userRepositoryAlg = new MemoryUserRepositoryInterpreter[F]
+      userRepositoryAlg = new MemUserRepositoryAlgInterpreter[F]
       jwtClockAlg = JwtClockAlg[F]
-      jwtTokenAlg = new JwtTokenInterpreter[F](conf.jwt, jwtClockAlg)
-      hasherAlg = new BCryptHasherInterpreter[F](12)
+      jwtTokenAlg = new JwtTokenAlgInterpreter[F](conf.jwt, jwtClockAlg)
+      hasherAlg = new BCryptHasherAlgInterpreter[F](12)
       fooService = new FooService[F](fooRepositoryAlg, fooValidationAlg)
       authService = new AuthService[F](jwtTokenAlg, userRepositoryAlg, hasherAlg)
       deleteFooConsumer = new DeleteFooConsumer[F](fooService, conf)

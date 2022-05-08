@@ -5,7 +5,7 @@ import domain.users._
 import cats.effect.kernel.Sync
 import java.util.UUID
 
-class MemoryUserRepositoryInterpreter[F[_]: Sync] extends UserRepositoryAlg[F] {
+class MemUserRepositoryAlgInterpreter[F[_]: Sync] extends UserRepositoryAlg[F] {
 
   private val id = UserId(UUID.fromString("967bbcca-9880-46b9-882c-267c04693d1c"))
   private val name = UserName("whsv26")

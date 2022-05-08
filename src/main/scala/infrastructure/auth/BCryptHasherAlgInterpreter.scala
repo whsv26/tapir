@@ -9,7 +9,7 @@ import org.whsv26.tapir.domain.users.{PasswordHash, PlainPassword}
 import tsec.passwordhashers
 import tsec.passwordhashers.jca.BCrypt
 
-class BCryptHasherInterpreter[F[_]: Sync](
+class BCryptHasherAlgInterpreter[F[_]: Sync](
   rounds: Int = 12
 ) extends HasherAlg[F] {
 
