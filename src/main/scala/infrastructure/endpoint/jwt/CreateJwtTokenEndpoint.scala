@@ -1,47 +1,40 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.jwt
 
+import domain.auth.AuthService.{InvalidUserPassword, UserNotFoundByName}
 import domain.auth.{AuthService, JwtToken}
-import domain.auth.AuthService.{InvalidPassword, UserNotFound}
 import domain.users.{PlainPassword, UserName}
+import infrastructure.endpoint.ErrorInfo
+import infrastructure.endpoint.ErrorInfo.User.{InvalidPassword, NotFoundByName}
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint.CreateJwtToken
-import infrastructure.endpoint.{ApiEndpoint, ErrorInfo}
 
 import cats.effect.kernel.Sync
 import io.circe.generic.auto._
-import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint.Full
 
-class CreateJwtTokenEndpoint[F[+_]: Sync](
-  auth: AuthService[F]
-) extends ApiEndpoint {
+class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
 
   val action: Full[Unit, Unit, CreateJwtToken, ErrorInfo, JwtToken, Any, F] =
     endpoint
-      .in(prefix / "token")
+      .summary("Sign in")
+      .in("api" / "v1" / "token")
       .post
       .in(jsonBody[CreateJwtToken])
       .out(jsonBody[JwtToken])
       .errorOut(statusCode
-        .description(StatusCode.NotFound, "User not found")
-        .description(StatusCode.BadRequest, "Invalid password")
+        .description(NotFoundByName.status, NotFoundByName.format)
+        .description(InvalidPassword.status, InvalidPassword.format)
         .and(stringBody)
         .mapTo[ErrorInfo]
       )
       .serverLogic[F] { in => auth
         .signIn(UserName(in.name), PlainPassword(in.password))
         .leftMap {
-          case UserNotFound(name) => ErrorInfo(
-            StatusCode.NotFound,
-            s"User with name '$name' is not found"
-          )
-          case InvalidPassword => ErrorInfo(
-            StatusCode.BadRequest,
-            "Invalid password"
-          )
+          case UserNotFoundByName(name) => NotFoundByName(name)
+          case InvalidUserPassword => InvalidPassword.apply
         }
         .value
       }

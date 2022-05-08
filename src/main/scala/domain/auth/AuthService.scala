@@ -18,12 +18,12 @@ class AuthService[F[+_]: Monad](
       // find user
       user <- EitherT.fromOptionF(
         users.findByName(name),
-        UserNotFound(name.value)
+        UserNotFoundByName(name.value)
       )
 
       // verify password
       _ <- EitherT.liftF(hasher.verifyPassword(pass, user.password))
-        .ensure(InvalidPassword)(identity)
+        .ensure(InvalidUserPassword)(identity)
 
       // generate jwt token
       token <- EitherT.liftF(tokens.generateToken(user.id))
@@ -33,6 +33,6 @@ class AuthService[F[+_]: Monad](
 
 object AuthService {
   sealed trait AuthError extends Throwable
-  case class UserNotFound(name: String) extends AuthError
-  case object InvalidPassword extends AuthError
+  case class UserNotFoundByName(name: String) extends AuthError
+  case object InvalidUserPassword extends AuthError
 }

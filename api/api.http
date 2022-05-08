@@ -16,8 +16,14 @@ client.global.set("jwtToken", response.body);
 GET {{url}}/hello-world?whom=whsv26
 Accept: application/json
 
+### Get foo
+GET {{url}}/foo/{{fooId}}
+Authorization: Bearer {{jwtToken}}
+Accept: application/json
+
+
 ### Delete foo
-DELETE {{url}}/foo/5ef7a170-87a2-4c54-be9c-1da9165d90a8
+DELETE {{url}}/foo/{{fooId}}
 Accept: application/json
 
 ### Create foo

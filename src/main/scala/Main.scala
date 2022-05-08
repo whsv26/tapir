@@ -5,7 +5,6 @@ import domain.auth.{AuthService, JwtClockAlg}
 import domain.foos.{FooService, FooValidationInterpreter}
 import infrastructure.auth.{BCryptHasherInterpreter, JwtTokenInterpreter}
 import infrastructure.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint, GetFooEndpoint}
-import infrastructure.endpoint.hello.HelloWorldEndpoint
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint
 import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
 import infrastructure.repository.inmemory.MemoryUserRepositoryInterpreter
@@ -58,10 +57,9 @@ object Main extends IOApp {
       deleteFooProducer = new DeleteFooProducer[F](conf)
 
       routes = makeRoutes[F](List(
-        new HelloWorldEndpoint[F].action,
         new CreateFooEndpoint[F](fooService, jwtTokenAlg).action,
         new GetFooEndpoint[F](fooService, jwtTokenAlg).action,
-        new DeleteFooEndpoint[F](deleteFooProducer).action,
+        new DeleteFooEndpoint[F](deleteFooProducer, jwtTokenAlg).action,
         new CreateJwtTokenEndpoint[F](authService).action,
       ))
     } yield {

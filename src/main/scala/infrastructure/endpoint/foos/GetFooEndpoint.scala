@@ -4,11 +4,12 @@ package infrastructure.endpoint.foos
 import domain.auth.{JwtToken, JwtTokenAlg}
 import domain.foos.{Foo, FooId, FooService}
 import domain.users.UserId
-import infrastructure.endpoint.{ErrorInfo, SecureApiEndpoint}
+import infrastructure.endpoint.ErrorInfo
+import infrastructure.endpoint.ErrorInfo.Foo.NotFound
+import util.tapir.securedEndpoint
 
 import cats.effect.kernel.Sync
 import cats.syntax.functor._
-import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
@@ -17,27 +18,23 @@ import sttp.tapir.server.ServerEndpoint.Full
 class GetFooEndpoint[F[_]: Sync](
   fooService: FooService[F],
   jwtTokenAlg: JwtTokenAlg[F],
-) extends SecureApiEndpoint[F](jwtTokenAlg) {
-
+) {
   val action: Full[JwtToken, UserId, FooId, ErrorInfo, Foo, Any, F] =
-    endpoint
-      .in(prefix / "foo")
+    securedEndpoint(jwtTokenAlg)
+      .summary("Get foo info")
       .get
-      .in(jsonBody[FooId])
+      .in("api" / "v1" / "foo")
+      .in(path[FooId])
       .out(jsonBody[Foo])
-      .errorOut(statusCode
-        .description(StatusCode.NotFound, "Not found")
-        .and(stringBody)
-        .mapTo[ErrorInfo]
-      )
-      .securityIn(auth.bearer[JwtToken]())
-      .serverSecurityLogic[UserId, F](securityLogic)
+      .errorOutVariant(oneOfVariant(
+        statusCode
+          .description(NotFound.status, NotFound.format)
+          .and(stringBody)
+          .mapTo[ErrorInfo]
+      ))
       .serverLogic { _ => fooId =>
         fooService
           .findById(fooId)
-          .map(_.toRight(ErrorInfo(
-            StatusCode.Conflict,
-            s"Foo ${fooId.value} not found"
-          )))
+          .map(_.toRight(NotFound(fooId.value.toString)))
       }
 }

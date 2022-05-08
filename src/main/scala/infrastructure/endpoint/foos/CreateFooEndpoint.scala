@@ -2,16 +2,17 @@ package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
 import domain.auth.{JwtToken, JwtTokenAlg}
-import domain.foos.{FooId, FooService}
 import domain.foos.FooValidationAlg.FooAlreadyExists
+import domain.foos.{FooId, FooService}
 import domain.users.UserId
+import infrastructure.endpoint.ErrorInfo
+import infrastructure.endpoint.ErrorInfo.Foo.AlreadyExists
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
-import infrastructure.endpoint.{ErrorInfo, SecureApiEndpoint}
+import util.tapir.securedEndpoint
 
 import cats.effect.kernel.Sync
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
@@ -22,29 +23,26 @@ import java.util.UUID
 class CreateFooEndpoint[F[_]: Sync](
   fooService: FooService[F],
   jwtTokenAlg: JwtTokenAlg[F],
-) extends SecureApiEndpoint[F](jwtTokenAlg) {
+) {
 
   val action: Full[JwtToken, UserId, CreateFoo, ErrorInfo, FooId, Any, F] =
-    endpoint
-      .in(prefix / "foo")
+    securedEndpoint(jwtTokenAlg)
+      .summary("Create new foo")
       .post
+      .in("api" / "v1" / "foo")
       .in(jsonBody[CreateFoo])
       .out(jsonBody[FooId])
-      .errorOut(statusCode
-        .description(StatusCode.Conflict, "Already exists")
-        .and(stringBody)
-        .mapTo[ErrorInfo]
-      )
-      .securityIn(auth.bearer[JwtToken]())
-      .serverSecurityLogic[UserId, F](securityLogic)
+      .errorOutVariant(oneOfVariant(
+        statusCode
+          .description(AlreadyExists.status, AlreadyExists.format)
+          .and(stringBody)
+          .mapTo[ErrorInfo]
+      ))
       .serverLogic { _ => command =>
         fooService
           .create(FooId(UUID.randomUUID), command)
           .leftMap {
-            case FooAlreadyExists(id) => ErrorInfo(
-              StatusCode.Conflict,
-              s"Foo $id already exists"
-            )
+            case FooAlreadyExists(id) => AlreadyExists(id.value.toString)
           }
           .value
       }
