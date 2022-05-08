@@ -3,13 +3,14 @@ package org.whsv26.tapir
 import config.Config.AppConfig
 import domain.auth.{AuthService, JwtClockAlg}
 import domain.foos.{FooService, FooValidationInterpreter}
-import infrastructure.auth.{JwtTokenInterpreter, BCryptHasherInterpreter}
-import infrastructure.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint}
+import infrastructure.auth.{BCryptHasherInterpreter, JwtTokenInterpreter}
+import infrastructure.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint, GetFooEndpoint}
 import infrastructure.endpoint.hello.HelloWorldEndpoint
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint
 import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
 import infrastructure.repository.inmemory.MemoryUserRepositoryInterpreter
 import infrastructure.repository.slick.SlickFooRepositoryInterpreter
+
 import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
@@ -59,6 +60,7 @@ object Main extends IOApp {
       routes = makeRoutes[F](List(
         new HelloWorldEndpoint[F].action,
         new CreateFooEndpoint[F](fooService, jwtTokenAlg).action,
+        new GetFooEndpoint[F](fooService, jwtTokenAlg).action,
         new DeleteFooEndpoint[F](deleteFooProducer).action,
         new CreateJwtTokenEndpoint[F](authService).action,
       ))

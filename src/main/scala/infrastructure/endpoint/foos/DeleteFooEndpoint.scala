@@ -1,12 +1,12 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
-import domain.foos.Foo.FooId
 import infrastructure.endpoint.ApiEndpoint
 import infrastructure.messaging.kafka.DeleteFooProducer
 
 import cats.effect.kernel.Async
 import cats.implicits._
+import org.whsv26.tapir.domain.foos.FooId
 import sttp.tapir._
 import sttp.tapir.server.ServerEndpoint.Full
 

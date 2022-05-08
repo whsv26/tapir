@@ -2,17 +2,19 @@ package org.whsv26.tapir
 package infrastructure.messaging.kafka
 
 import config.Config.AppConfig
-import domain.foos.Foo.FooId
+import domain.foos.FooId
 
 import cats.effect.kernel.Async
 import cats.implicits._
 import fs2.kafka._
 
+import java.util.UUID
+
 class DeleteFooProducer[F[_]: Async](conf: AppConfig) {
 
   private val baseSettings = ProducerSettings(
-    keySerializer = Serializer[F, FooId],
-    valueSerializer = Serializer[F, FooId]
+    keySerializer = Serializer[F, UUID].contramap[FooId](_.value),
+    valueSerializer = Serializer[F, UUID].contramap[FooId](_.value),
   )
 
   private val settings = baseSettings
