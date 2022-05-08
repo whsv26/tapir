@@ -22,7 +22,7 @@ class DeleteFooConsumer[F[_]: Async](
   )
 
   private val consumerSettings = baseSettings
-    .withBootstrapServers(conf.kafka.bootstrapServers)
+    .withBootstrapServers(conf.kafka.bootstrapServers.value)
     .withAutoOffsetReset(AutoOffsetReset.Earliest)
     .withEnableAutoCommit(false)
     .withGroupId("foo-delete-group")

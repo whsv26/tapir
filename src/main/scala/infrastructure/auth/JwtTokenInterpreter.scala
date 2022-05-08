@@ -55,7 +55,7 @@ class JwtTokenInterpreter[F[_]: Sync](
     for {
       clock <- clockAlg.utc
       issuedAt <- Sync[F].delay(clock.instant())
-      expiredAt = issuedAt.plus(conf.expiry, ChronoUnit.SECONDS)
+      expiredAt = issuedAt.plus(conf.expiry.value, ChronoUnit.SECONDS)
     } yield JWTClaims()
       .withIssuer(conf.issuer)
       .withSubject(id.value.toString)

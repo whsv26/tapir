@@ -23,6 +23,7 @@ import slick.jdbc.JdbcBackend.{Database, DatabaseDef}
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
+import eu.timepit.refined.pureconfig._
 
 object Main extends IOApp {
 
@@ -34,8 +35,8 @@ object Main extends IOApp {
     val release = (db: DatabaseDef) => Sync[F].delay(db.close())
     val acquire = Sync[F].delay(Database.forDriver(
       new org.postgresql.Driver,
-      conf.db.url,
-      conf.db.user,
+      conf.db.url.value,
+      conf.db.user.value,
       conf.db.password
     ))
 
@@ -90,8 +91,8 @@ object Main extends IOApp {
 
     BlazeServerBuilder[F]
       .bindHttp(
-        port = conf.server.port,
-        host = conf.server.host
+        port = conf.server.port.value,
+        host = conf.server.host.value
       )
       .withHttpApp(httpApp)
       .serve
