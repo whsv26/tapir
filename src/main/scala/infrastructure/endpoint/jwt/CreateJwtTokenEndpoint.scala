@@ -1,16 +1,16 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.jwt
 
-import domain.auth.AuthService.{InvalidUserPassword, UserNotFoundByName}
+import domain.auth.AuthService.{InvalidPassword, UserNotFound}
 import domain.auth.{AuthService, Token}
 import domain.users.{PlainPassword, UserName}
-import infrastructure.endpoint.ErrorInfo
-import infrastructure.endpoint.ErrorInfo.User.{InvalidPassword, NotFoundByName}
-import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint.CreateJwtToken
+import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
+import infrastructure.endpoint.{ApiError, EntityNotFound}
 import util.tapir.PublicRoute
 
 import cats.effect.kernel.Sync
 import io.circe.generic.auto._
+import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
@@ -25,16 +25,16 @@ class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
       .in(jsonBody[CreateJwtToken])
       .out(jsonBody[Token])
       .errorOut(statusCode
-        .description(NotFoundByName.status, NotFoundByName.format)
-        .description(InvalidPassword.status, InvalidPassword.format)
+        .description(UserNotFoundApiError.status, UserNotFoundApiError.format)
+        .description(InvalidPasswordApiError.status, InvalidPasswordApiError.format)
         .and(stringBody)
-        .mapTo[ErrorInfo]
+        .mapTo[ApiError]
       )
       .serverLogic[F] { in => auth
         .signIn(UserName(in.name), PlainPassword(in.password))
         .leftMap {
-          case UserNotFoundByName(name) => NotFoundByName(name)
-          case InvalidUserPassword => InvalidPassword.apply
+          case UserNotFound(name) => UserNotFoundApiError(name)
+          case InvalidPassword => InvalidPasswordApiError.apply
         }
         .value
       }
@@ -45,4 +45,11 @@ object CreateJwtTokenEndpoint {
     name: String,
     password: String
   )
+
+  private object UserNotFoundApiError extends EntityNotFound("User", "name")
+  private object InvalidPasswordApiError {
+    val format: String = "Invalid password"
+    val status: StatusCode = StatusCode.BadRequest
+    def apply: ApiError = ApiError(status, format)
+  }
 }

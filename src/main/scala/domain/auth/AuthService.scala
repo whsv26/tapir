@@ -22,20 +22,20 @@ final class AuthService[F[_]: Monad](
 
   private def findUser(
     name: UserName
-  ): EitherT[F, UserNotFoundByName, UserWithPassword] =
+  ): EitherT[F, UserNotFound, UserWithPassword] =
     OptionT(users.findByName(name))
-      .toRight(UserNotFoundByName(name.value))
+      .toRight(UserNotFound(name.value))
 
   private def verifyPassword(
     plain: PlainPassword,
     hashed: PasswordHash
-  ): EitherT[F, InvalidUserPassword.type, Boolean] =
+  ): EitherT[F, InvalidPassword.type, Boolean] =
     EitherT.liftF(hasher.verifyPassword(plain, hashed))
-      .ensure(InvalidUserPassword)(identity)
+      .ensure(InvalidPassword)(identity)
 }
 
 object AuthService {
   sealed trait AuthError extends Throwable
-  case class UserNotFoundByName(name: String) extends AuthError
-  case object InvalidUserPassword extends AuthError
+  case class UserNotFound(name: String) extends AuthError
+  case object InvalidPassword extends AuthError
 }

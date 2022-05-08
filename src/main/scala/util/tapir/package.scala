@@ -3,7 +3,7 @@ package util
 
 import domain.auth.{Token, TokenAlg}
 import domain.users.UserId
-import infrastructure.endpoint.ErrorInfo
+import infrastructure.endpoint.ApiError
 
 import cats.Functor
 import sttp.model.StatusCode
@@ -12,9 +12,9 @@ import sttp.tapir.server.ServerEndpoint.Full
 import sttp.tapir.{auth, endpoint, statusCode, stringBody}
 
 package object tapir {
-  type PartialSecuredRoute[F[_], IN, OUT] = PartialServerEndpoint[Token, UserId, IN, ErrorInfo, OUT, Any, F]
-  type SecuredRoute[F[_], IN, OUT] = Full[Token, UserId, IN, ErrorInfo, OUT, Any, F]
-  type PublicRoute[F[_], IN, OUT] = Full[Unit, Unit, IN, ErrorInfo, OUT, Any, F]
+  type PartialSecuredRoute[F[_], IN, OUT] = PartialServerEndpoint[Token, UserId, IN, ApiError, OUT, Any, F]
+  type SecuredRoute[F[_], IN, OUT] = Full[Token, UserId, IN, ApiError, OUT, Any, F]
+  type PublicRoute[F[_], IN, OUT] = Full[Unit, Unit, IN, ApiError, OUT, Any, F]
 
   def securedEndpoint[F[_]: Functor](tokens: TokenAlg[F]): PartialSecuredRoute[F, Unit, Unit] =
     endpoint
@@ -23,12 +23,12 @@ package object tapir {
         statusCode
           .description(StatusCode.Unauthorized, "Unable to verify jwt-token")
           .and(stringBody)
-          .mapTo[ErrorInfo]
+          .mapTo[ApiError]
       )
       .serverSecurityLogic[UserId, F] { token =>
         tokens
           .verifyToken(token)
-          .leftMap(err => ErrorInfo(StatusCode.Unauthorized, err.cause))
+          .leftMap(err => ApiError(StatusCode.Unauthorized, err.cause))
           .value
       }
 }

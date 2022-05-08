@@ -4,9 +4,8 @@ package infrastructure.endpoint.foos
 import domain.auth.TokenAlg
 import domain.foos.FooValidationAlg.FooAlreadyExists
 import domain.foos.{FooId, FooService}
-import infrastructure.endpoint.ErrorInfo
-import infrastructure.endpoint.ErrorInfo.Foo.AlreadyExists
-import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
+import infrastructure.endpoint.foos.CreateFooEndpoint.{AlreadyExistsApiError, CreateFoo}
+import infrastructure.endpoint.{ApiError, EntityAlreadyExists}
 import util.tapir.{SecuredRoute, securedEndpoint}
 
 import cats.effect.kernel.Sync
@@ -32,13 +31,13 @@ class CreateFooEndpoint[F[_]: Sync](
       .out(jsonBody[FooId])
       .errorOutVariant(oneOfVariant(
         statusCode
-          .description(AlreadyExists.status, AlreadyExists.format)
+          .description(AlreadyExistsApiError.status, AlreadyExistsApiError.format)
           .and(stringBody)
-          .mapTo[ErrorInfo]
+          .mapTo[ApiError]
       ))
       .serverLogic { _ => command =>
         foos.create(FooId.next, command)
-          .leftMap { case FooAlreadyExists(id) => AlreadyExists(id.value.toString) }
+          .leftMap { case FooAlreadyExists(id) => AlreadyExistsApiError(id.value.toString) }
           .value
       }
 }
@@ -50,4 +49,6 @@ object CreateFooEndpoint {
     implicit val encoder: Encoder[CreateFoo] = deriveEncoder[CreateFoo]
     implicit val decoder: Decoder[CreateFoo] = deriveDecoder[CreateFoo]
   }
+
+  private object AlreadyExistsApiError extends EntityAlreadyExists("Foo")
 }

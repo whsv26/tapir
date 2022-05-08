@@ -3,8 +3,8 @@ package infrastructure.endpoint.foos
 
 import domain.auth.TokenAlg
 import domain.foos.{Foo, FooId, FooService}
-import infrastructure.endpoint.ErrorInfo
-import infrastructure.endpoint.ErrorInfo.Foo.NotFound
+import infrastructure.endpoint.foos.GetFooEndpoint.NotFoundApiError
+import infrastructure.endpoint.{ApiError, EntityNotFound}
 import util.tapir.{SecuredRoute, securedEndpoint}
 
 import cats.effect.kernel.Sync
@@ -26,13 +26,17 @@ class GetFooEndpoint[F[_]: Sync](
       .out(jsonBody[Foo])
       .errorOutVariant(oneOfVariant(
         statusCode
-          .description(NotFound.status, NotFound.format)
+          .description(NotFoundApiError.status, NotFoundApiError.format)
           .and(stringBody)
-          .mapTo[ErrorInfo]
+          .mapTo[ApiError]
       ))
       .serverLogic { _ => fooId =>
         fooService
           .findById(fooId)
-          .map(_.toRight(NotFound(fooId.value.toString)))
+          .map(_.toRight(NotFoundApiError(fooId.value.toString)))
       }
+}
+
+object GetFooEndpoint {
+  private object NotFoundApiError extends EntityNotFound("Foo")
 }
