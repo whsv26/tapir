@@ -9,17 +9,29 @@ package object endpoint {
     msg: String
   )
 
-  class EntityNotFound(entity: String, fmt: String = "id") {
-    private def format(id: String) = s"$entity $id not found"
-    final val format: String = format(s"{$fmt}")
-    final val status: StatusCode = StatusCode.NotFound
+  trait EntityApiError {
+    def identity: String
+    def name: String
+    def action: String
+    def status: StatusCode
+    final val format: String = format(s"{$identity}")
+    protected def format(identity: String) = s"$name $identity $action"
     final def apply(id: String): ApiError = ApiError(status, format(id))
   }
 
-  class EntityAlreadyExists(entity: String, fmt: String = "id") {
-    private def format(id: String) = s"$entity $id already exists"
-    final val format: String = format(s"{$fmt}")
+  class EntityNotFound(
+    val name: String,
+    val identity: String = "id"
+  ) extends EntityApiError {
+    final val status: StatusCode = StatusCode.NotFound
+    override def action = "not found"
+  }
+
+  class EntityAlreadyExists(
+    val name: String,
+    val identity: String = "id"
+  ) extends EntityApiError {
     final val status: StatusCode = StatusCode.Conflict
-    final def apply(id: String): ApiError = ApiError(status, format(id))
+    override def action = "already exists"
   }
 }
