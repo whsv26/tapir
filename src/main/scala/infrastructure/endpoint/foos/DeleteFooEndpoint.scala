@@ -1,24 +1,21 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
-import domain.auth.{Token, TokenAlg}
+import domain.auth.TokenAlg
 import domain.foos.FooId
-import domain.users.UserId
-import infrastructure.endpoint.ErrorInfo
 import infrastructure.messaging.kafka.DeleteFooProducer
-import util.tapir.securedEndpoint
+import util.tapir.{SecuredRoute, securedEndpoint}
 
 import cats.effect.kernel.Async
 import cats.implicits._
 import sttp.tapir._
-import sttp.tapir.server.ServerEndpoint.Full
 
 class DeleteFooEndpoint[F[_]: Async](
   producer: DeleteFooProducer[F],
   tokens: TokenAlg[F],
 ) {
 
-  val action: Full[Token, UserId, FooId, ErrorInfo, Unit, Any, F] =
+  val route: SecuredRoute[F, FooId, Unit] =
     securedEndpoint(tokens)
       .summary("Delete foo")
       .delete

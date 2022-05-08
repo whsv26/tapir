@@ -7,17 +7,17 @@ import domain.users.{PlainPassword, UserName}
 import infrastructure.endpoint.ErrorInfo
 import infrastructure.endpoint.ErrorInfo.User.{InvalidPassword, NotFoundByName}
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint.CreateJwtToken
+import util.tapir.PublicRoute
 
 import cats.effect.kernel.Sync
 import io.circe.generic.auto._
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
-import sttp.tapir.server.ServerEndpoint.Full
 
 class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
 
-  val action: Full[Unit, Unit, CreateJwtToken, ErrorInfo, Token, Any, F] =
+  val route: PublicRoute[F, CreateJwtToken, Token] =
     endpoint
       .summary("Sign in")
       .in("api" / "v1" / "token")

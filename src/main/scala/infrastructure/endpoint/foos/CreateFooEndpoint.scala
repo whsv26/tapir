@@ -1,14 +1,13 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
-import domain.auth.{Token, TokenAlg}
+import domain.auth.TokenAlg
 import domain.foos.FooValidationAlg.FooAlreadyExists
 import domain.foos.{FooId, FooService}
-import domain.users.UserId
 import infrastructure.endpoint.ErrorInfo
 import infrastructure.endpoint.ErrorInfo.Foo.AlreadyExists
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
-import util.tapir.securedEndpoint
+import util.tapir.{SecuredRoute, securedEndpoint}
 
 import cats.effect.kernel.Sync
 import eu.timepit.refined.types.numeric.NonNegInt
@@ -18,16 +17,13 @@ import io.circe.{Decoder, Encoder}
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
-import sttp.tapir.server.ServerEndpoint.Full
-
-import java.util.UUID
 
 class CreateFooEndpoint[F[_]: Sync](
   foos: FooService[F],
   tokens: TokenAlg[F],
 ) {
 
-  val action: Full[Token, UserId, CreateFoo, ErrorInfo, FooId, Any, F] =
+  val route: SecuredRoute[F, CreateFoo, FooId] =
     securedEndpoint(tokens)
       .summary("Create new foo")
       .post
@@ -41,7 +37,7 @@ class CreateFooEndpoint[F[_]: Sync](
           .mapTo[ErrorInfo]
       ))
       .serverLogic { _ => command =>
-        foos.create(FooId(UUID.randomUUID), command)
+        foos.create(FooId.next, command)
           .leftMap { case FooAlreadyExists(id) => AlreadyExists(id.value.toString) }
           .value
       }

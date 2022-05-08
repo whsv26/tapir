@@ -11,6 +11,8 @@ package object foos {
   @newtype case class FooId(value: UUID)
 
   object FooId {
+    def next: FooId = FooId(UUID.randomUUID())
+
     implicit val decoder: Decoder[FooId] = deriving
     implicit val encoder: Encoder[FooId] = deriving
     implicit val schema: Schema[FooId] = deriving

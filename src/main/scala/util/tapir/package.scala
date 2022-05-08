@@ -8,12 +8,15 @@ import infrastructure.endpoint.ErrorInfo
 import cats.Functor
 import sttp.model.StatusCode
 import sttp.tapir.server.PartialServerEndpoint
+import sttp.tapir.server.ServerEndpoint.Full
 import sttp.tapir.{auth, endpoint, statusCode, stringBody}
 
 package object tapir {
-  type SecuredEndpoint[F[_]] = PartialServerEndpoint[Token, UserId, Unit, ErrorInfo, Unit, Any, F]
+  type PartialSecuredRoute[F[_], IN, OUT] = PartialServerEndpoint[Token, UserId, IN, ErrorInfo, OUT, Any, F]
+  type SecuredRoute[F[_], IN, OUT] = Full[Token, UserId, IN, ErrorInfo, OUT, Any, F]
+  type PublicRoute[F[_], IN, OUT] = Full[Unit, Unit, IN, ErrorInfo, OUT, Any, F]
 
-  def securedEndpoint[F[_]: Functor](tokens: TokenAlg[F]): SecuredEndpoint[F] =
+  def securedEndpoint[F[_]: Functor](tokens: TokenAlg[F]): PartialSecuredRoute[F, Unit, Unit] =
     endpoint
       .securityIn(auth.bearer[Token]())
       .errorOut(
