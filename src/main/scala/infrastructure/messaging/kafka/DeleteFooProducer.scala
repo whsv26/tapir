@@ -18,7 +18,7 @@ class DeleteFooProducer[F[_]: Async](conf: AppConfig) {
   )
 
   private val settings = baseSettings
-    .withBootstrapServers(conf.kafka.bootstrapServers)
+    .withBootstrapServers(conf.kafka.bootstrapServers.value)
     .withAcks(Acks.All)
 
   def produce(id: FooId): F[Unit] =

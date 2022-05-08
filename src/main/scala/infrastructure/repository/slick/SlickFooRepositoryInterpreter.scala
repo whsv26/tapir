@@ -7,6 +7,8 @@ import infrastructure.repository.slick.SlickFooRepositoryInterpreter.foos
 
 import cats.effect.Async
 import cats.implicits._
+import eu.timepit.refined.numeric.NonNegative
+import eu.timepit.refined.refineV
 import slick.dbio.{DBIOAction, NoStream}
 import slick.jdbc.JdbcBackend.DatabaseDef
 import slick.jdbc.PostgresProfile.api._
@@ -46,8 +48,14 @@ object SlickFooRepositoryInterpreter {
     def b: Rep[Boolean] = column[Boolean]("b")
 
     def * : ProvenShape[Foo] = (id, a, b) <>[Foo] (
-      { case (id, a, b) => Foo(FooId(id), a, b) },
-      { case Foo(id, a, b) => (id.value, a, b).some }
+      { case (id, a, b) =>
+        Foo(
+          FooId(id),
+          refineV[NonNegative](a).toOption.get, // TODO
+          b
+        )
+      },
+      { case Foo(id, a, b) => (id.value, a.value, b).some }
     )
   }
 

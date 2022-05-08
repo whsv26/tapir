@@ -11,8 +11,10 @@ import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
 import util.tapir.securedEndpoint
 
 import cats.effect.kernel.Sync
+import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import io.circe.refined._
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
@@ -49,7 +51,7 @@ class CreateFooEndpoint[F[_]: Sync](
 }
 
 object CreateFooEndpoint {
-  final case class CreateFoo(a: Int, b: Boolean)
+  final case class CreateFoo(a: NonNegInt, b: Boolean)
 
   object CreateFoo {
     implicit val encoder: Encoder[CreateFoo] = deriveEncoder[CreateFoo]
