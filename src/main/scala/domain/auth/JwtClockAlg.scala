@@ -5,12 +5,12 @@ import cats.effect.kernel.Sync
 
 import java.time.Clock
 
-trait JwtClockAlgebra[F[_]] {
+trait JwtClockAlg[F[_]] {
   def utc: F[Clock]
 }
 
-object JwtClockAlgebra {
-  def apply[F[_]: Sync]: JwtClockAlgebra[F] = new JwtClockAlgebra[F] {
+object JwtClockAlg {
+  def apply[F[_]: Sync]: JwtClockAlg[F] = new JwtClockAlg[F] {
     override def utc: F[Clock] =
       Sync[F].delay(Clock.systemUTC())
   }

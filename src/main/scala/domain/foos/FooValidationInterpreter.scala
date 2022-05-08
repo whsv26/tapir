@@ -2,15 +2,15 @@ package org.whsv26.tapir
 package domain.foos
 
 import Foo.FooId
-import FooValidationAlgebra._
+import FooValidationAlg._
 import cats.Functor
 import cats.data.EitherT
 import cats.implicits._
-import FooValidationAlgebra.FooDoesNotExist
+import FooValidationAlg.FooDoesNotExist
 
 class FooValidationInterpreter[F[_]: Functor](
-  foos: FooRepositoryAlgebra[F]
-) extends FooValidationAlgebra[F] {
+  foos: FooRepositoryAlg[F]
+) extends FooValidationAlg[F] {
 
   override def doesNotExist(id: FooId): EitherT[F, FooAlreadyExists, Unit] =
     EitherT {

@@ -1,13 +1,13 @@
 package org.whsv26.tapir
 package infrastructure.endpoint.foos
 
-import domain.auth.{JwtToken, JwtTokenAlgebra}
+import domain.auth.{JwtToken, JwtTokenAlg}
 import domain.foos.Foo.FooId
 import domain.foos.FooService
-import domain.foos.FooValidationAlgebra.FooAlreadyExists
-import domain.users.Users.UserId
+import domain.foos.FooValidationAlg.FooAlreadyExists
+import domain.users.UserId
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
-import infrastructure.endpoint.{ApiEndpoint, ErrorInfo, SecureApiEndpoint}
+import infrastructure.endpoint.{ErrorInfo, SecureApiEndpoint}
 
 import cats.effect.kernel.Sync
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -22,7 +22,7 @@ import java.util.UUID
 
 class CreateFooEndpoint[F[_]: Sync](
   fooService: FooService[F],
-  jwtTokenAlg: JwtTokenAlgebra[F],
+  jwtTokenAlg: JwtTokenAlg[F],
 ) extends SecureApiEndpoint[F](jwtTokenAlg) {
 
   val action: Full[JwtToken, UserId, CreateFoo, ErrorInfo, FooId, Any, F] =

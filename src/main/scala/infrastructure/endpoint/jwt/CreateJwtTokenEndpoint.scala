@@ -3,9 +3,10 @@ package infrastructure.endpoint.jwt
 
 import domain.auth.AuthService
 import domain.auth.AuthService.{InvalidPassword, UserNotFound}
-import domain.users.Users.{PlainPassword, UserName}
-import infrastructure.endpoint.{ApiEndpoint, ErrorInfo}
+import domain.users.{PlainPassword, UserName}
 import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint.CreateJwtToken
+import infrastructure.endpoint.{ApiEndpoint, ErrorInfo}
+
 import cats.effect.kernel.Sync
 import io.circe.generic.auto._
 import sttp.model.StatusCode

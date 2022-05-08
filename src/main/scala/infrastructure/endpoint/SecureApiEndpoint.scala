@@ -1,15 +1,16 @@
 package org.whsv26.tapir
 package infrastructure.endpoint
 
-import domain.auth.{JwtToken, JwtTokenAlgebra}
-import domain.users.Users.UserId
+import domain.auth.{JwtToken, JwtTokenAlg}
+import domain.users.UserId
+
 import cats.Functor
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.server.PartialServerEndpoint
 
 abstract class SecureApiEndpoint[F[_]: Functor](
-  jwtTokenAlg: JwtTokenAlgebra[F]
+  jwtTokenAlg: JwtTokenAlg[F]
 ) extends ApiEndpoint {
 
   protected final def securityLogic(token: JwtToken): F[Either[ErrorInfo, UserId]] =

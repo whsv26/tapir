@@ -2,7 +2,7 @@ package org.whsv26.tapir
 package infrastructure.repository.slick
 
 import domain.foos.Foo.FooId
-import domain.foos.{Foo, FooRepositoryAlgebra}
+import domain.foos.{Foo, FooRepositoryAlg}
 import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
 import infrastructure.repository.slick.SlickFooRepositoryInterpreter.foos
 
@@ -15,7 +15,7 @@ import slick.lifted.ProvenShape
 
 class SlickFooRepositoryInterpreter[F[_]: Async](
   db: DatabaseDef
-) extends FooRepositoryAlgebra[F] {
+) extends FooRepositoryAlg[F] {
 
   private def run[R](a: DBIOAction[R, NoStream, Nothing]): F[R] = {
     val delayed = Async[F].delay(db.run(a))

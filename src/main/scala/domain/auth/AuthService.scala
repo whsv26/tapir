@@ -2,15 +2,15 @@ package org.whsv26.tapir
 package domain.auth
 
 import domain.auth.AuthService._
-import domain.users.UserRepositoryAlgebra
-import domain.users.Users.{PlainPassword, UserName}
+import domain.users.{PlainPassword, UserName, UserRepositoryAlg}
+
 import cats.Monad
 import cats.data.EitherT
 
 class AuthService[F[+_]: Monad](
-  tokens: JwtTokenAlgebra[F],
-  users: UserRepositoryAlgebra[F],
-  hasher: HasherAlgebra[F]
+  tokens: JwtTokenAlg[F],
+  users: UserRepositoryAlg[F],
+  hasher: HasherAlg[F]
 ) {
 
   def signIn(name: UserName, pass: PlainPassword): EitherT[F, AuthError, JwtToken] =

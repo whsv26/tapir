@@ -1,9 +1,9 @@
 package org.whsv26.tapir
-package domain.users
+package domain
 
 import java.util.UUID
 
-object Users {
+package object users {
   case class User(
     id: UserId,
     name: UserName
@@ -19,5 +19,4 @@ object Users {
   case class UserName(value: String)
   case class PlainPassword(value: String)
   case class PasswordHash(value: String)
-
 }
