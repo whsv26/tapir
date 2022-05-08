@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package domain.foos
 
-import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
+import org.whsv26.tapir.application.foos.CreateFooEndpoint.CreateFoo
 
 trait FooRepositoryAlg[F[_]] {
   def findById(id: FooId): F[Option[Foo]]

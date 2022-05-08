@@ -8,6 +8,7 @@ import tsec.common._
 import tsec.jws.signature.JWTSig
 import tsec.jwt.JWTClaims
 import tsec.signature.jca.{SHA256withECDSA, SigKeyPair}
+
 import java.security.{Key, PrivateKey, PublicKey}
 import java.util.UUID
 

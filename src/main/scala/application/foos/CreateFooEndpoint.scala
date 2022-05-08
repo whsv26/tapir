@@ -1,12 +1,11 @@
 package org.whsv26.tapir
-package infrastructure.endpoint.foos
+package application.foos
 
+import application.foos.CreateFooEndpoint._
+import application.{ApiError, EntityAlreadyExists, SecuredRoute, securedEndpoint}
 import domain.auth.TokenAlg
 import domain.foos.FooValidationAlg.FooAlreadyExists
 import domain.foos.{FooId, FooService}
-import infrastructure.endpoint.foos.CreateFooEndpoint.{AlreadyExistsApiError, CreateFoo}
-import infrastructure.endpoint.{ApiError, EntityAlreadyExists}
-import util.tapir.{SecuredRoute, securedEndpoint}
 
 import cats.effect.kernel.Sync
 import eu.timepit.refined.types.numeric.NonNegInt

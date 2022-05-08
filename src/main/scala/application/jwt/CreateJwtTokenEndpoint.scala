@@ -1,12 +1,11 @@
 package org.whsv26.tapir
-package infrastructure.endpoint.jwt
+package application.jwt
 
+import application.jwt.CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
+import application.{ApiError, EntityNotFound, PublicRoute}
 import domain.auth.AuthService.{InvalidPassword, UserNotFound}
 import domain.auth.{AuthService, Token}
 import domain.users.{PlainPassword, UserName}
-import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
-import infrastructure.endpoint.{ApiError, EntityNotFound}
-import util.tapir.PublicRoute
 
 import cats.effect.kernel.Sync
 import io.circe.generic.auto._

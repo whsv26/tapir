@@ -5,12 +5,12 @@ import config.Config.AppConfig
 import cats.effect.std.Console
 import cats.effect.{IO, IOApp, Sync}
 import cats.implicits._
+import eu.timepit.refined.pureconfig._
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import tsec.jws.signature.JWTSig
 import tsec.jwt.JWTClaims
 import tsec.signature.jca.{SHA256withECDSA, SigKeyPair}
-import eu.timepit.refined.pureconfig._
 
 import java.security.{PrivateKey, PublicKey}
 import java.util.{Base64, UUID}

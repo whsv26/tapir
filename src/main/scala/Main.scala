@@ -1,11 +1,11 @@
 package org.whsv26.tapir
 
+import application.foos.{CreateFooEndpoint, DeleteFooEndpoint, GetFooEndpoint}
+import application.jwt.CreateJwtTokenEndpoint
 import config.Config.AppConfig
 import domain.auth.{AuthService, JwtClockAlg}
 import domain.foos.{FooService, FooValidationInterpreter}
 import infrastructure.auth.{BCryptHasherAlgInterpreter, JwtTokenAlgInterpreter}
-import infrastructure.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint, GetFooEndpoint}
-import infrastructure.endpoint.jwt.CreateJwtTokenEndpoint
 import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
 import infrastructure.repository.inmemory.MemUserRepositoryAlgInterpreter
 import infrastructure.repository.slick.SlickFooRepositoryAlgInterpreter
@@ -13,6 +13,7 @@ import infrastructure.repository.slick.SlickFooRepositoryAlgInterpreter
 import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
+import eu.timepit.refined.pureconfig._
 import fs2.Stream
 import org.http4s.HttpRoutes
 import org.http4s.blaze.server.BlazeServerBuilder
@@ -23,7 +24,6 @@ import slick.jdbc.JdbcBackend.{Database, DatabaseDef}
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
-import eu.timepit.refined.pureconfig._
 
 object Main extends IOApp {
 

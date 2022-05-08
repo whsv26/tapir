@@ -1,11 +1,10 @@
 package org.whsv26.tapir
-package infrastructure.endpoint.foos
+package application.foos
 
+import application.foos.GetFooEndpoint.NotFoundApiError
+import application.{ApiError, EntityNotFound, SecuredRoute, securedEndpoint}
 import domain.auth.TokenAlg
 import domain.foos.{Foo, FooId, FooService}
-import infrastructure.endpoint.foos.GetFooEndpoint.NotFoundApiError
-import infrastructure.endpoint.{ApiError, EntityNotFound}
-import util.tapir.{SecuredRoute, securedEndpoint}
 
 import cats.effect.kernel.Sync
 import cats.syntax.functor._

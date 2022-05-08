@@ -1,8 +1,8 @@
 package org.whsv26.tapir
 package domain.foos
 
+import application.foos.CreateFooEndpoint.CreateFoo
 import domain.foos.FooValidationAlg.{FooAlreadyExists, FooDoesNotExist}
-import infrastructure.endpoint.foos.CreateFooEndpoint.CreateFoo
 
 import cats.MonadThrow
 import cats.data.EitherT

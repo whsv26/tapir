@@ -1,10 +1,10 @@
 package org.whsv26.tapir
-package infrastructure.endpoint.foos
+package application.foos
 
+import application.{SecuredRoute, securedEndpoint}
 import domain.auth.TokenAlg
 import domain.foos.FooId
 import infrastructure.messaging.kafka.DeleteFooProducer
-import util.tapir.{SecuredRoute, securedEndpoint}
 
 import cats.effect.kernel.Async
 import cats.implicits._
