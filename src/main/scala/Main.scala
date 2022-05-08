@@ -1,7 +1,5 @@
 package org.whsv26.tapir
 
-import application.foos.{CreateFooEndpoint, DeleteFooEndpoint, GetFooEndpoint}
-import application.jwt.CreateJwtTokenEndpoint
 import config.Config.AppConfig
 import domain.auth.{AuthService, JwtClockAlg}
 import domain.foos.{FooService, FooValidationInterpreter}
@@ -18,6 +16,8 @@ import fs2.Stream
 import org.http4s.HttpRoutes
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.middleware.Logger
+import org.whsv26.tapir.application.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint, GetFooEndpoint}
+import org.whsv26.tapir.application.endpoint.jwt.CreateJwtTokenEndpoint
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import slick.jdbc.JdbcBackend.{Database, DatabaseDef}

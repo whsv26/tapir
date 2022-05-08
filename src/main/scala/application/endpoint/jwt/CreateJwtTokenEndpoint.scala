@@ -1,8 +1,9 @@
 package org.whsv26.tapir
-package application.jwt
+package application.endpoint.jwt
 
-import application.jwt.CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
-import application.{ApiError, EntityNotFound, PublicRoute}
+import application.endpoint.jwt.CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
+import application.error.{ApiError, EntityNotFound}
+import application.security.PublicRoute
 import domain.auth.AuthService.{InvalidPassword, UserNotFound}
 import domain.auth.{AuthService, Token}
 import domain.users.{PlainPassword, UserName}

@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package application.foos
+package application.endpoint.foos
 
-import application.{SecuredRoute, securedEndpoint}
+import application.security.{SecuredRoute, securedEndpoint}
 import domain.auth.TokenAlg
 import domain.foos.FooId
 import infrastructure.messaging.kafka.DeleteFooProducer

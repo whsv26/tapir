@@ -1,8 +1,9 @@
 package org.whsv26.tapir
-package application.foos
+package application.endpoint.foos
 
-import application.foos.CreateFooEndpoint._
-import application.{ApiError, EntityAlreadyExists, SecuredRoute, securedEndpoint}
+import application.endpoint.foos.CreateFooEndpoint._
+import application.error.{ApiError, EntityAlreadyExists}
+import application.security.{SecuredRoute, securedEndpoint}
 import domain.auth.TokenAlg
 import domain.foos.FooValidationAlg.FooAlreadyExists
 import domain.foos.{FooId, FooService}

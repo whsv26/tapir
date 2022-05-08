@@ -2,7 +2,7 @@ package org.whsv26.tapir
 package infrastructure.repository.slick
 
 import domain.foos.{Foo, FooId, FooRepositoryAlg}
-import org.whsv26.tapir.application.foos.CreateFooEndpoint.CreateFoo
+import org.whsv26.tapir.application.endpoint.foos.CreateFooEndpoint.CreateFoo
 import infrastructure.repository.slick.SlickFooRepositoryAlgInterpreter.foos
 
 import cats.effect.Async

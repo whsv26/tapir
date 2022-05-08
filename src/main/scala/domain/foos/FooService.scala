@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package domain.foos
 
-import application.foos.CreateFooEndpoint.CreateFoo
+import org.whsv26.tapir.application.endpoint.foos.CreateFooEndpoint.CreateFoo
 import domain.foos.FooValidationAlg.{FooAlreadyExists, FooDoesNotExist}
 
 import cats.MonadThrow

@@ -1,8 +1,9 @@
 package org.whsv26.tapir
-package application.foos
+package application.endpoint.foos
 
-import application.foos.GetFooEndpoint.NotFoundApiError
-import application.{ApiError, EntityNotFound, SecuredRoute, securedEndpoint}
+import application.endpoint.foos.GetFooEndpoint.NotFoundApiError
+import application.error.{ApiError, EntityNotFound}
+import application.security.{SecuredRoute, securedEndpoint}
 import domain.auth.TokenAlg
 import domain.foos.{Foo, FooId, FooService}
 
