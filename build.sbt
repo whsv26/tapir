@@ -14,6 +14,7 @@ val kafkaVersion = "2.8.0"
 val fs2KafkaVersion = "3.0.0-M4"
 val tsecVersion = "0.4.0"
 val newTypeVersion = "0.4.4"
+val refinedVersion = "0.9.28"
 
 lazy val root = (project in file("."))
   .settings(
@@ -41,6 +42,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
+  "io.circe" %% "circe-refined" % circeVersion,
 
   "org.apache.kafka" % "kafka-clients" % kafkaVersion,
   "org.apache.kafka" % "kafka-streams" % kafkaVersion,
@@ -62,5 +64,8 @@ libraryDependencies ++= Seq(
 
   "io.estatico" %% "newtype" % newTypeVersion,
   "io.estatico" %% "newtype" % newTypeVersion,
-)
 
+  "eu.timepit" %% "refined" % refinedVersion,
+  "eu.timepit" %% "refined-cats" % refinedVersion,
+  "eu.timepit" %% "refined-pureconfig" % refinedVersion,
+)
