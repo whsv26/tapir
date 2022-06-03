@@ -3,8 +3,8 @@ package application.endpoint.foos
 
 import application.endpoint.foos.GetFooEndpoint.NotFoundApiError
 import application.error.{ApiError, EntityNotFound}
-import application.security.{SecuredRoute, securedEndpoint}
-import domain.auth.TokenAlg
+import application.security.{SecuredRoute, securedEndpoint, tokenAuth}
+import domain.auth.{Token, TokenAlg}
 import domain.foos.{Foo, FooId, FooService}
 
 import cats.effect.kernel.Sync
@@ -15,10 +15,21 @@ import sttp.tapir.json.circe.jsonBody
 
 class GetFooEndpoint[F[_]: Sync](
   fooService: FooService[F],
-  tokens: TokenAlg[F],
+  tokens: TokenAlg[F]
 ) {
   val route: SecuredRoute[F, FooId, Foo] =
-    securedEndpoint(tokens)
+    GetFooEndpoint.route
+      .serverSecurityLogic(tokenAuth(tokens))
+      .serverLogic { _ => fooId =>
+        fooService
+          .findById(fooId)
+          .map(_.toRight(NotFoundApiError(fooId.value.toString)))
+      }
+}
+
+object GetFooEndpoint {
+  val route: Endpoint[Token, FooId, ApiError, Foo, Any] =
+    securedEndpoint
       .summary("Get foo info")
       .get
       .in("api" / "v1" / "foo")
@@ -30,13 +41,6 @@ class GetFooEndpoint[F[_]: Sync](
           .and(stringBody)
           .mapTo[ApiError]
       ))
-      .serverLogic { _ => fooId =>
-        fooService
-          .findById(fooId)
-          .map(_.toRight(NotFoundApiError(fooId.value.toString)))
-      }
-}
 
-object GetFooEndpoint {
   private object NotFoundApiError extends EntityNotFound("Foo")
 }

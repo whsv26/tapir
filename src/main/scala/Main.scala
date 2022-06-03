@@ -21,6 +21,8 @@ import org.whsv26.tapir.application.endpoint.jwt.CreateJwtTokenEndpoint
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import slick.jdbc.JdbcBackend.{Database, DatabaseDef}
+import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
+import sttp.tapir.openapi.{Info, OpenAPI}
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
@@ -72,11 +74,25 @@ object Main extends IOApp {
   private def makeRoutes[F[_]: Async](
     apiEndpoints: List[ServerEndpoint[Any, F]]
   ): HttpRoutes[F] = {
-    val swaggerEndpoints = SwaggerInterpreter().fromServerEndpoints[F](
-      endpoints = apiEndpoints,
-      title = "Learning tapir",
-      version = "1.0.0"
-    )
+    val swaggerEndpoints =
+      SwaggerInterpreter()
+        .fromServerEndpoints[F](
+          endpoints = apiEndpoints,
+          title = "Learning tapir",
+          version = "1.0.0"
+        )
+
+    val openApi: OpenAPI =
+      OpenAPIDocsInterpreter()
+        .serverEndpointsToOpenAPI(
+          apiEndpoints,
+          title = "Learning tapir",
+          version = "1.0.0"
+        )
+
+    import sttp.tapir.openapi.circe.yaml._
+    openApi.toYaml
+
 
     Http4sServerInterpreter[F].toRoutes(apiEndpoints) <+>
     Http4sServerInterpreter[F].toRoutes(swaggerEndpoints) // docs

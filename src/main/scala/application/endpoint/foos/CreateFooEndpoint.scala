@@ -3,8 +3,8 @@ package application.endpoint.foos
 
 import application.endpoint.foos.CreateFooEndpoint._
 import application.error.{ApiError, EntityAlreadyExists}
-import application.security.{SecuredRoute, securedEndpoint}
-import domain.auth.TokenAlg
+import application.security.{SecuredRoute, securedEndpoint, tokenAuth}
+import domain.auth.{Token, TokenAlg}
 import domain.foos.FooValidationAlg.FooAlreadyExists
 import domain.foos.{FooId, FooService}
 
@@ -19,11 +19,21 @@ import sttp.tapir.json.circe.jsonBody
 
 class CreateFooEndpoint[F[_]: Sync](
   foos: FooService[F],
-  tokens: TokenAlg[F],
+  tokens: TokenAlg[F]
 ) {
-
   val route: SecuredRoute[F, CreateFoo, FooId] =
-    securedEndpoint(tokens)
+    CreateFooEndpoint.route
+      .serverSecurityLogic(tokenAuth(tokens))
+      .serverLogic { _ => command =>
+        foos.create(FooId.next, command)
+          .leftMap { case FooAlreadyExists(id) => AlreadyExistsApiError(id.value.toString) }
+          .value
+      }
+}
+
+object CreateFooEndpoint {
+  val route: Endpoint[Token, CreateFoo, ApiError, FooId, Any] =
+    securedEndpoint
       .summary("Create new foo")
       .post
       .in("api" / "v1" / "foo")
@@ -35,14 +45,7 @@ class CreateFooEndpoint[F[_]: Sync](
           .and(stringBody)
           .mapTo[ApiError]
       ))
-      .serverLogic { _ => command =>
-        foos.create(FooId.next, command)
-          .leftMap { case FooAlreadyExists(id) => AlreadyExistsApiError(id.value.toString) }
-          .value
-      }
-}
 
-object CreateFooEndpoint {
   final case class CreateFoo(a: NonNegInt, b: Boolean)
 
   object CreateFoo {

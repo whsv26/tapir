@@ -7,16 +7,14 @@ import domain.users.UserId
 
 import cats.Functor
 import sttp.model.StatusCode
-import sttp.tapir.server.PartialServerEndpoint
-import sttp.tapir.server.ServerEndpoint.Full
-import sttp.tapir.{auth, endpoint, statusCode, stringBody}
+import sttp.tapir.server.ServerEndpoint
+import sttp.tapir.{Endpoint, auth, endpoint, statusCode, stringBody}
 
 package object security {
-  type PartialSecuredRoute[F[_], IN, OUT] = PartialServerEndpoint[Token, UserId, IN, ApiError, OUT, Any, F]
-  type SecuredRoute[F[_], IN, OUT] = Full[Token, UserId, IN, ApiError, OUT, Any, F]
-  type PublicRoute[F[_], IN, OUT] = Full[Unit, Unit, IN, ApiError, OUT, Any, F]
+  type SecuredRoute[F[_], IN, OUT] = ServerEndpoint.Full[Token, UserId, IN, ApiError, OUT, Any, F]
+  type PublicRoute[F[_], IN, OUT] = ServerEndpoint.Full[Unit, Unit, IN, ApiError, OUT, Any, F]
 
-  def securedEndpoint[F[_]: Functor](tokens: TokenAlg[F]): PartialSecuredRoute[F, Unit, Unit] =
+  val securedEndpoint: Endpoint[Token, Unit, ApiError, Unit, Any] =
     endpoint
       .securityIn(auth.bearer[Token]())
       .errorOut(
@@ -25,10 +23,12 @@ package object security {
           .and(stringBody)
           .mapTo[ApiError]
       )
-      .serverSecurityLogic[UserId, F] { token =>
-        tokens
-          .verifyToken(token)
-          .leftMap(err => ApiError(StatusCode.Unauthorized, err.cause))
-          .value
-      }
+
+  def tokenAuth[F[_]: Functor](
+    tokens: TokenAlg[F]
+  ): Token => F[Either[ApiError, UserId]] =
+    token =>
+      tokens.verifyToken(token)
+        .leftMap(err => ApiError(StatusCode.Unauthorized, err.cause))
+        .value
 }

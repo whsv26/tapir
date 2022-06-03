@@ -16,8 +16,20 @@ import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 
 class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
-
   val route: PublicRoute[F, CreateJwtToken, Token] =
+    CreateJwtTokenEndpoint.route
+      .serverLogic[F] { in => auth
+        .signIn(UserName(in.name), PlainPassword(in.password))
+        .leftMap {
+          case UserNotFound(name) => UserNotFoundApiError(name)
+          case InvalidPassword => InvalidPasswordApiError.apply
+        }
+        .value
+      }
+}
+
+object CreateJwtTokenEndpoint {
+  val route: Endpoint[Unit, CreateJwtToken, ApiError, Token, Any] =
     endpoint
       .summary("Sign in")
       .in("api" / "v1" / "token")
@@ -30,17 +42,7 @@ class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
         .and(stringBody)
         .mapTo[ApiError]
       )
-      .serverLogic[F] { in => auth
-        .signIn(UserName(in.name), PlainPassword(in.password))
-        .leftMap {
-          case UserNotFound(name) => UserNotFoundApiError(name)
-          case InvalidPassword => InvalidPasswordApiError.apply
-        }
-        .value
-      }
-}
 
-object CreateJwtTokenEndpoint {
   case class CreateJwtToken(
     name: String,
     password: String
