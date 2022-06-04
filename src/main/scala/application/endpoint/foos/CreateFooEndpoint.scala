@@ -21,7 +21,7 @@ class CreateFooEndpoint[F[_]: Sync](
   foos: FooService[F],
   tokens: TokenAlg[F]
 ) {
-  val route: SecuredRoute[F, CreateFoo, FooId] =
+  lazy val route: SecuredRoute[F, CreateFoo, FooId] =
     CreateFooEndpoint.route
       .serverSecurityLogic(tokenAuth(tokens))
       .serverLogic { _ => command =>
@@ -32,19 +32,16 @@ class CreateFooEndpoint[F[_]: Sync](
 }
 
 object CreateFooEndpoint {
-  val route: Endpoint[Token, CreateFoo, ApiError, FooId, Any] =
+  lazy val route: Endpoint[Token, CreateFoo, ApiError, FooId, Any] =
     securedEndpoint
       .summary("Create new foo")
       .post
       .in("api" / "v1" / "foo")
       .in(jsonBody[CreateFoo])
       .out(jsonBody[FooId])
-      .errorOutVariant(oneOfVariant(
-        statusCode
-          .description(AlreadyExistsApiError.status, AlreadyExistsApiError.format)
-          .and(stringBody)
-          .mapTo[ApiError]
-      ))
+      .errorOutVariants(
+        oneOfVariant(AlreadyExistsApiError.out.mapTo[ApiError]),
+      )
 
   final case class CreateFoo(a: NonNegInt, b: Boolean)
 

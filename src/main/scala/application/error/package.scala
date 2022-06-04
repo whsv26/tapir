@@ -2,20 +2,31 @@ package org.whsv26.tapir
 package application
 
 import sttp.model.StatusCode
+import sttp.tapir.{EndpointOutput, statusCode, stringBody}
 
 package object error {
-  case class ApiError(
-    statusCode: StatusCode,
-    msg: String
-  )
+  trait ApiErrorLike {
+    def status: StatusCode
+    def message: String
 
-  trait EntityApiError {
+    def out: EndpointOutput[(StatusCode, String)] =
+      statusCode
+        .description(status, message)
+        .and(stringBody)
+  }
+
+  case class ApiError(
+    status: StatusCode,
+    message: String
+  ) extends ApiErrorLike
+
+  trait EntityApiError extends ApiErrorLike {
     def identity: String
     def name: String
     def action: String
     def status: StatusCode
 
-    final val format: String =
+    final val message: String =
       format(s"{$identity}")
 
     protected def format(identity: String) =

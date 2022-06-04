@@ -8,6 +8,7 @@ import domain.users.UserId
 import infrastructure.auth.JwtTokenAlgInterpreter.UnableToDecodeJwtPrivateKey
 
 import cats.data.EitherT
+import cats.effect.Resource
 import cats.effect.kernel.Sync
 import cats.implicits._
 import tsec.common._
@@ -65,4 +66,12 @@ class JwtTokenAlgInterpreter[F[_]: Sync](
 
 object JwtTokenAlgInterpreter {
   case object UnableToDecodeJwtPrivateKey extends Throwable
+
+  def apply[F[_]: Sync](
+    conf: JwtConfig,
+    clockAlg: JwtClockAlg[F],
+  ): Resource[F, JwtTokenAlgInterpreter[F]] =
+    Resource.suspend(Sync.Type.Delay) {
+      new JwtTokenAlgInterpreter[F](conf, clockAlg)
+    }
 }

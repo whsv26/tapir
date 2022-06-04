@@ -6,6 +6,7 @@ import domain.users._
 
 import cats.Monad
 import cats.data.{EitherT, OptionT}
+import cats.effect.kernel.{Resource, Sync}
 
 final class AuthService[F[_]: Monad](
   tokens: TokenAlg[F],
@@ -38,4 +39,13 @@ object AuthService {
   sealed trait AuthError extends Throwable
   case class UserNotFound(name: String) extends AuthError
   case object InvalidPassword extends AuthError
+
+  def apply[F[_]: Sync](
+    tokens: TokenAlg[F],
+    users: UserRepositoryAlg[F],
+    hasher: HasherAlg[F]
+  ): Resource[F, AuthService[F]] =
+    Resource.suspend(Sync.Type.Delay) {
+      new AuthService[F](tokens, users, hasher)
+    }
 }

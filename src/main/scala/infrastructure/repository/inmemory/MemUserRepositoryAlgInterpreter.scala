@@ -2,7 +2,9 @@ package org.whsv26.tapir
 package infrastructure.repository.inmemory
 
 import domain.users._
-import cats.effect.kernel.Sync
+
+import cats.effect.kernel.{Resource, Sync}
+
 import java.util.UUID
 
 class MemUserRepositoryAlgInterpreter[F[_]: Sync] extends UserRepositoryAlg[F] {
@@ -19,5 +21,12 @@ class MemUserRepositoryAlgInterpreter[F[_]: Sync] extends UserRepositoryAlg[F] {
       usersWithPassword
         .find { case (_, user) => user.name == name }
         .map { case (_, user) => user }
+    }
+}
+
+object MemUserRepositoryAlgInterpreter {
+  def apply[F[_]: Sync]: Resource[F, MemUserRepositoryAlgInterpreter[F]] =
+    Resource.suspend(Sync.Type.Delay) {
+      new MemUserRepositoryAlgInterpreter()
     }
 }

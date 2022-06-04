@@ -9,13 +9,14 @@ import infrastructure.messaging.kafka.DeleteFooProducer
 
 import cats.effect.kernel.Async
 import cats.implicits._
+import sttp.model.StatusCode
 import sttp.tapir._
 
 class DeleteFooEndpoint[F[_]: Async](
   producer: DeleteFooProducer[F],
   tokens: TokenAlg[F]
 ) {
-  val route: SecuredRoute[F, FooId, Unit] =
+  lazy val route: SecuredRoute[F, FooId, Unit] =
     DeleteFooEndpoint.route
       .serverSecurityLogic(tokenAuth(tokens))
       .serverLogic { _ => foo =>
@@ -26,9 +27,10 @@ class DeleteFooEndpoint[F[_]: Async](
 }
 
 object DeleteFooEndpoint {
-  val route: Endpoint[Token, FooId, ApiError, Unit, Any] =
+  lazy val route: Endpoint[Token, FooId, ApiError, Unit, Any] =
     securedEndpoint
       .summary("Delete foo")
       .delete
       .in("api" / "v1" / "foo" / path[FooId]("fooId"))
+      .out(statusCode(StatusCode.Accepted))
 }

@@ -2,10 +2,12 @@ package org.whsv26.tapir
 package infrastructure.repository.slick
 
 import domain.foos.{Foo, FooId, FooRepositoryAlg}
+
 import org.whsv26.tapir.application.endpoint.foos.CreateFooEndpoint.CreateFoo
 import infrastructure.repository.slick.SlickFooRepositoryAlgInterpreter.foos
 
 import cats.effect.Async
+import cats.effect.kernel.{Resource, Sync}
 import cats.implicits._
 import eu.timepit.refined.numeric.NonNegative
 import eu.timepit.refined.refineV
@@ -42,6 +44,14 @@ class SlickFooRepositoryAlgInterpreter[F[_]: Async](
 }
 
 object SlickFooRepositoryAlgInterpreter {
+  def apply[F[_]: Async](
+    db: DatabaseDef
+  ): Resource[F, SlickFooRepositoryAlgInterpreter[F]] =
+    Resource.suspend(Sync.Type.Delay) {
+      new SlickFooRepositoryAlgInterpreter(db)
+    }
+
+
   class Foos(tag: Tag) extends Table[Foo](tag, "foos") {
     def id: Rep[UUID] = column[UUID]("id", O.PrimaryKey)
     def a: Rep[Int] = column[Int]("a")

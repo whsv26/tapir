@@ -6,6 +6,7 @@ import cats.Functor
 import cats.data.EitherT
 import cats.implicits._
 import FooValidationAlg.FooDoesNotExist
+import cats.effect.kernel.{Resource, Sync}
 
 class FooValidationInterpreter[F[_]: Functor](
   foos: FooRepositoryAlg[F]
@@ -24,6 +25,15 @@ class FooValidationInterpreter[F[_]: Functor](
       foos.findById(id),
       FooDoesNotExist(id)
     ).void
+}
+
+object FooValidationInterpreter {
+  def apply[F[_]: Sync](
+    foos: FooRepositoryAlg[F]
+  ): Resource[F, FooValidationInterpreter[F]] =
+    Resource.suspend(Sync.Type.Delay) {
+      new FooValidationInterpreter(foos)
+    }
 }
 
 

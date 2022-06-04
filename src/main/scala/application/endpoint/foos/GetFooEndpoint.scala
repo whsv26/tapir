@@ -17,7 +17,7 @@ class GetFooEndpoint[F[_]: Sync](
   fooService: FooService[F],
   tokens: TokenAlg[F]
 ) {
-  val route: SecuredRoute[F, FooId, Foo] =
+  lazy val route: SecuredRoute[F, FooId, Foo] =
     GetFooEndpoint.route
       .serverSecurityLogic(tokenAuth(tokens))
       .serverLogic { _ => fooId =>
@@ -28,19 +28,16 @@ class GetFooEndpoint[F[_]: Sync](
 }
 
 object GetFooEndpoint {
-  val route: Endpoint[Token, FooId, ApiError, Foo, Any] =
+  lazy val route: Endpoint[Token, FooId, ApiError, Foo, Any] =
     securedEndpoint
       .summary("Get foo info")
       .get
       .in("api" / "v1" / "foo")
       .in(path[FooId])
       .out(jsonBody[Foo])
-      .errorOutVariant(oneOfVariant(
-        statusCode
-          .description(NotFoundApiError.status, NotFoundApiError.format)
-          .and(stringBody)
-          .mapTo[ApiError]
-      ))
+      .errorOutVariants(
+        oneOfVariant(NotFoundApiError.out.mapTo[ApiError]),
+      )
 
   private object NotFoundApiError extends EntityNotFound("Foo")
 }

@@ -4,7 +4,7 @@ package infrastructure.messaging.kafka
 import config.Config.AppConfig
 import domain.foos.FooId
 
-import cats.effect.kernel.Async
+import cats.effect.kernel.{Async, Resource, Sync}
 import cats.implicits._
 import fs2.kafka._
 
@@ -29,4 +29,13 @@ class DeleteFooProducer[F[_]: Async](conf: AppConfig) {
       }
       .flatten
       .void
+}
+
+object DeleteFooProducer {
+  def apply[F[_]: Async](
+    conf: AppConfig
+  ): Resource[F, DeleteFooProducer[F]] =
+    Resource.suspend(Sync.Type.Delay) {
+      new DeleteFooProducer[F](conf)
+    }
 }

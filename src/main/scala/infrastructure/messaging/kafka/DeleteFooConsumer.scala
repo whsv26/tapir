@@ -4,7 +4,7 @@ package infrastructure.messaging.kafka
 import config.Config.AppConfig
 import domain.foos.{FooId, FooService}
 
-import cats.effect.kernel.Async
+import cats.effect.kernel.{Async, Resource, Sync}
 import cats.implicits._
 import fs2.Stream
 import fs2.kafka._
@@ -41,4 +41,14 @@ class DeleteFooConsumer[F[_]: Async](
       }
       .through(commitBatchWithin(500, 10.seconds))
   }
+}
+
+object DeleteFooConsumer {
+  def apply[F[_]: Async](
+    foos: FooService[F],
+    conf: AppConfig
+  ): Resource[F, DeleteFooConsumer[F]] =
+    Resource.suspend(Sync.Type.Delay) {
+      new DeleteFooConsumer[F](foos, conf)
+    }
 }

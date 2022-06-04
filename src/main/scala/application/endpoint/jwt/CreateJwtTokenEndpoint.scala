@@ -2,7 +2,7 @@ package org.whsv26.tapir
 package application.endpoint.jwt
 
 import application.endpoint.jwt.CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
-import application.error.{ApiError, EntityNotFound}
+import application.error.{ApiError, ApiErrorLike, EntityNotFound}
 import application.security.PublicRoute
 import domain.auth.AuthService.{InvalidPassword, UserNotFound}
 import domain.auth.{AuthService, Token}
@@ -16,7 +16,7 @@ import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 
 class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
-  val route: PublicRoute[F, CreateJwtToken, Token] =
+  lazy val route: PublicRoute[F, CreateJwtToken, Token] =
     CreateJwtTokenEndpoint.route
       .serverLogic[F] { in => auth
         .signIn(UserName(in.name), PlainPassword(in.password))
@@ -29,18 +29,17 @@ class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
 }
 
 object CreateJwtTokenEndpoint {
-  val route: Endpoint[Unit, CreateJwtToken, ApiError, Token, Any] =
+  lazy val route: Endpoint[Unit, CreateJwtToken, ApiError, Token, Any] =
     endpoint
       .summary("Sign in")
       .in("api" / "v1" / "token")
       .post
       .in(jsonBody[CreateJwtToken])
       .out(jsonBody[Token])
-      .errorOut(statusCode
-        .description(UserNotFoundApiError.status, UserNotFoundApiError.format)
-        .description(InvalidPasswordApiError.status, InvalidPasswordApiError.format)
-        .and(stringBody)
-        .mapTo[ApiError]
+      .errorOut((statusCode and stringBody).mapTo[ApiError])
+      .errorOutVariants(
+        oneOfVariant(UserNotFoundApiError.out.mapTo[ApiError]),
+        oneOfVariant(InvalidPasswordApiError.out.mapTo[ApiError]),
       )
 
   case class CreateJwtToken(
@@ -49,9 +48,9 @@ object CreateJwtTokenEndpoint {
   )
 
   private object UserNotFoundApiError extends EntityNotFound("User", "name")
-  private object InvalidPasswordApiError {
-    val format: String = "Invalid password"
+  private object InvalidPasswordApiError extends ApiErrorLike {
+    val message: String = "Invalid password"
     val status: StatusCode = StatusCode.BadRequest
-    def apply: ApiError = ApiError(status, format)
+    def apply: ApiError = ApiError(status, message)
   }
 }

@@ -16,12 +16,14 @@ import fs2.Stream
 import org.http4s.HttpRoutes
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.middleware.Logger
+import org.whsv26.tapir.application.endpoint.{foos, jwt}
 import org.whsv26.tapir.application.endpoint.foos.{CreateFooEndpoint, DeleteFooEndpoint, GetFooEndpoint}
 import org.whsv26.tapir.application.endpoint.jwt.CreateJwtTokenEndpoint
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import slick.jdbc.JdbcBackend.{Database, DatabaseDef}
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
+import sttp.tapir.openapi.circe.yaml.RichOpenAPI
 import sttp.tapir.openapi.{Info, OpenAPI}
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
@@ -33,38 +35,32 @@ object Main extends IOApp {
     .resources("config/app.conf")
     .loadOrThrow[AppConfig]
 
-  def dbRes[F[_]: Sync]: Resource[F, DatabaseDef] = {
-    val release = (db: DatabaseDef) => Sync[F].delay(db.close())
-    val acquire = Sync[F].delay(Database.forDriver(
+  def dbResource[F[_]: Sync]: Resource[F, DatabaseDef] =
+    Resource.fromAutoCloseable(Sync[F].delay(Database.forDriver(
       new org.postgresql.Driver,
       conf.db.url.value,
       conf.db.user.value,
       conf.db.password
-    ))
-
-    Resource.make(acquire)(release)
-  }
+    )))
 
   private def makeAppStream[F[+_]: Async]: Resource[F, Stream[F, Unit]] = {
     for {
-      db <- dbRes[F]
-      fooRepositoryAlg = new SlickFooRepositoryAlgInterpreter[F](db)
-      fooValidationAlg = new FooValidationInterpreter[F](fooRepositoryAlg)
-      userRepositoryAlg = new MemUserRepositoryAlgInterpreter[F]
-      jwtClockAlg = JwtClockAlg[F]
-      jwtTokenAlg = new JwtTokenAlgInterpreter[F](conf.jwt, jwtClockAlg)
-      hasherAlg = new BCryptHasherAlgInterpreter[F](12)
-      fooService = new FooService[F](fooRepositoryAlg, fooValidationAlg)
-      authService = new AuthService[F](jwtTokenAlg, userRepositoryAlg, hasherAlg)
-      deleteFooConsumer = new DeleteFooConsumer[F](fooService, conf)
-      deleteFooProducer = new DeleteFooProducer[F](conf)
+      db <- dbResource[F]
+      jwtClockAlg <- JwtClockAlg[F]
+      userRepositoryAlg <- MemUserRepositoryAlgInterpreter[F]
+      hasherAlg <- BCryptHasherAlgInterpreter(12)
+      fooRepositoryAlg <- SlickFooRepositoryAlgInterpreter(db)
+      fooValidationAlg <- FooValidationInterpreter(fooRepositoryAlg)
+      jwtTokenAlg <- JwtTokenAlgInterpreter(conf.jwt, jwtClockAlg)
+      fooService <- FooService(fooRepositoryAlg, fooValidationAlg)
+      authService <- AuthService(jwtTokenAlg, userRepositoryAlg, hasherAlg)
+      deleteFooConsumer <- DeleteFooConsumer(fooService, conf)
+      deleteFooProducer <- DeleteFooProducer(conf)
 
       routes = makeRoutes[F](List(
-        new CreateFooEndpoint[F](fooService, jwtTokenAlg).route,
-        new GetFooEndpoint[F](fooService, jwtTokenAlg).route,
-        new DeleteFooEndpoint[F](deleteFooProducer, jwtTokenAlg).route,
-        new CreateJwtTokenEndpoint[F](authService).route,
-      ))
+        foos.routes(fooService, jwtTokenAlg, deleteFooProducer),
+        jwt.routes(authService),
+      ).flatten)
     } yield {
       makeServerStream(routes)
         .merge(deleteFooConsumer.stream)
@@ -72,30 +68,18 @@ object Main extends IOApp {
   }
 
   private def makeRoutes[F[_]: Async](
-    apiEndpoints: List[ServerEndpoint[Any, F]]
+    serverEndpoints: List[ServerEndpoint[Any, F]]
   ): HttpRoutes[F] = {
-    val swaggerEndpoints =
+    val swaggerUiEndpoints =
       SwaggerInterpreter()
         .fromServerEndpoints[F](
-          endpoints = apiEndpoints,
+          endpoints = serverEndpoints,
           title = "Learning tapir",
           version = "1.0.0"
         )
 
-    val openApi: OpenAPI =
-      OpenAPIDocsInterpreter()
-        .serverEndpointsToOpenAPI(
-          apiEndpoints,
-          title = "Learning tapir",
-          version = "1.0.0"
-        )
-
-    import sttp.tapir.openapi.circe.yaml._
-    openApi.toYaml
-
-
-    Http4sServerInterpreter[F].toRoutes(apiEndpoints) <+>
-    Http4sServerInterpreter[F].toRoutes(swaggerEndpoints) // docs
+    Http4sServerInterpreter[F].toRoutes(serverEndpoints) <+>
+    Http4sServerInterpreter[F].toRoutes(swaggerUiEndpoints) // docs
   }
 
   private def makeServerStream[F[_]: Async](routes: HttpRoutes[F]): Stream[F, Unit] = {
