@@ -7,7 +7,7 @@ import cats.effect.kernel.Sync
 import sttp.tapir.server.ServerEndpoint
 
 package object jwt {
-  def routes[F[+_]: Sync](
+  def routes[F[_]: Sync](
     auth: AuthService[F]
   ): List[ServerEndpoint[Any, F]] =
     List(

@@ -15,7 +15,7 @@ import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 
-class CreateJwtTokenEndpoint[F[+_]: Sync](auth: AuthService[F]) {
+class CreateJwtTokenEndpoint[F[_]: Sync](auth: AuthService[F]) {
   lazy val route: PublicRoute[F, CreateJwtToken, Token] =
     CreateJwtTokenEndpoint.route
       .serverLogic[F] { in => auth
