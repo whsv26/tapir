@@ -8,7 +8,7 @@ import cats.implicits._
 import FooValidationAlg.FooDoesNotExist
 import cats.effect.kernel.{Resource, Sync}
 
-class FooValidationInterpreter[F[_]: Functor](
+class FooValidationAlgInterpreter[F[_]: Functor](
   foos: FooRepositoryAlg[F]
 ) extends FooValidationAlg[F] {
 
@@ -27,12 +27,12 @@ class FooValidationInterpreter[F[_]: Functor](
     ).void
 }
 
-object FooValidationInterpreter {
+object FooValidationAlgInterpreter {
   def apply[F[_]: Sync](
     foos: FooRepositoryAlg[F]
-  ): Resource[F, FooValidationInterpreter[F]] =
+  ): Resource[F, FooValidationAlgInterpreter[F]] =
     Resource.suspend(Sync.Type.Delay) {
-      new FooValidationInterpreter(foos)
+      new FooValidationAlgInterpreter(foos)
     }
 }
 

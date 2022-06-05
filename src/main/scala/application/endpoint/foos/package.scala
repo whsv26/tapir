@@ -9,7 +9,7 @@ import infrastructure.messaging.kafka.DeleteFooProducer
 import cats.effect.kernel.Async
 
 package object foos {
-  def routes[F[_]: Async](
+  def serverEndpoints[F[_]: Async](
     foos: FooService[F],
     tokens: TokenAlg[F],
     producer: DeleteFooProducer[F],

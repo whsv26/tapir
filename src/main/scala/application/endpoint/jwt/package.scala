@@ -7,7 +7,7 @@ import domain.auth.AuthService
 import cats.effect.kernel.Sync
 
 package object jwt {
-  def routes[F[_]: Sync](
+  def serverEndpoints[F[_]: Sync](
     auth: AuthService[F]
   ): ServerEndpoints[F] =
     List(

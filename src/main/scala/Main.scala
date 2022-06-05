@@ -4,7 +4,7 @@ import application.endpoint.{foos, jwt}
 import application.security.ServerEndpoints
 import config.Config.{AppConfig, ServerConfig}
 import domain.auth.{AuthService, JwtClockAlg}
-import domain.foos.{FooService, FooValidationInterpreter}
+import domain.foos.{FooService, FooValidationAlgInterpreter}
 import infrastructure.auth.{BCryptHasherAlgInterpreter, JwtTokenAlgInterpreter}
 import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
 import infrastructure.storage.inmemory.MemUserRepositoryAlgInterpreter
@@ -29,7 +29,7 @@ object Main extends IOApp {
       userRepositoryAlg <- MemUserRepositoryAlgInterpreter[F]
       hasherAlg <- BCryptHasherAlgInterpreter(12)
       fooRepositoryAlg <- SlickFooRepositoryAlgInterpreter(db)
-      fooValidationAlg <- FooValidationInterpreter(fooRepositoryAlg)
+      fooValidationAlg <- FooValidationAlgInterpreter(fooRepositoryAlg)
       jwtTokenAlg <- JwtTokenAlgInterpreter(conf.jwt, jwtClockAlg)
       fooService <- FooService(fooRepositoryAlg, fooValidationAlg)
       authService <- AuthService(jwtTokenAlg, userRepositoryAlg, hasherAlg)
@@ -37,8 +37,8 @@ object Main extends IOApp {
       deleteFooProducer <- DeleteFooProducer(conf)
 
       routes = makeRoutes[F](List(
-        foos.routes(fooService, jwtTokenAlg, deleteFooProducer),
-        jwt.routes(authService),
+        foos.serverEndpoints(fooService, jwtTokenAlg, deleteFooProducer),
+        jwt.serverEndpoints(authService),
       ).flatten)
 
     } yield makeServerStream(conf.server, routes).merge(deleteFooConsumer.stream)
@@ -55,7 +55,7 @@ object Main extends IOApp {
         )
 
     Http4sServerInterpreter[F].toRoutes(serverEndpoints) <+>
-    Http4sServerInterpreter[F].toRoutes(swaggerUiEndpoints) // docs
+    Http4sServerInterpreter[F].toRoutes(swaggerUiEndpoints)
   }
 
   private def makeServerStream[F[_]: Async](
