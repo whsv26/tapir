@@ -1,5 +1,5 @@
 package org.whsv26.tapir
-package infrastructure.repository.inmemory
+package infrastructure.storage.inmemory
 
 import domain.users._
 

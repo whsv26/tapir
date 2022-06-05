@@ -6,50 +6,25 @@ import domain.auth.{AuthService, JwtClockAlg}
 import domain.foos.{FooService, FooValidationInterpreter}
 import infrastructure.auth.{BCryptHasherAlgInterpreter, JwtTokenAlgInterpreter}
 import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
-import infrastructure.repository.inmemory.MemUserRepositoryAlgInterpreter
-import infrastructure.repository.slick.SlickFooRepositoryAlgInterpreter
+import infrastructure.storage.inmemory.MemUserRepositoryAlgInterpreter
+import infrastructure.storage.slick.{SlickDatabaseFactory, SlickFooRepositoryAlgInterpreter}
 
 import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
-import eu.timepit.refined.pureconfig._
 import fs2.Stream
 import org.http4s.HttpRoutes
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.middleware.Logger
-import pureconfig.ConfigSource
-import pureconfig.error.ConfigReaderFailures
-import pureconfig.generic.auto._
-import slick.jdbc.JdbcBackend.{Database, DatabaseDef}
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
 object Main extends IOApp {
-
-  private case class ConfigError(err: ConfigReaderFailures) extends Throwable {
-    override val getMessage = err.prettyPrint()
-  }
-
-  private def confResource[F[_]: Sync]: Resource[F, AppConfig] =
-    Resource.eval {
-      Sync[F].delay(ConfigSource.resources("config/app.conf"))
-        .map(_.load[AppConfig].leftMap(ConfigError))
-        .rethrow
-    }
-
-  private def dbResource[F[_]: Sync](conf: AppConfig): Resource[F, DatabaseDef] =
-    Resource.fromAutoCloseable(Sync[F].delay(Database.forDriver(
-      new org.postgresql.Driver,
-      conf.db.url.value,
-      conf.db.user.value,
-      conf.db.password
-    )))
-
   private def makeAppStream[F[_]: Async]: Resource[F, Stream[F, Unit]] =
     for {
-      conf <- confResource[F]
-      db <- dbResource(conf)
+      conf <- AppConfig("config/app.conf")
+      db <- SlickDatabaseFactory(conf.db)
       jwtClockAlg <- JwtClockAlg[F]
       userRepositoryAlg <- MemUserRepositoryAlgInterpreter[F]
       hasherAlg <- BCryptHasherAlgInterpreter(12)
@@ -94,10 +69,7 @@ object Main extends IOApp {
     )(routes.orNotFound)
 
     BlazeServerBuilder[F]
-      .bindHttp(
-        port = conf.port.value,
-        host = conf.host.value
-      )
+      .bindHttp(conf.port.value, conf.host.value)
       .withHttpApp(httpApp)
       .serve
       .void
