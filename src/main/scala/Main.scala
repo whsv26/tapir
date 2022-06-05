@@ -1,6 +1,7 @@
 package org.whsv26.tapir
 
 import application.endpoint.{foos, jwt}
+import application.security.ServerEndpoints
 import config.Config.{AppConfig, ServerConfig}
 import domain.auth.{AuthService, JwtClockAlg}
 import domain.foos.{FooService, FooValidationInterpreter}
@@ -16,7 +17,6 @@ import fs2.Stream
 import org.http4s.HttpRoutes
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.middleware.Logger
-import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
@@ -44,7 +44,7 @@ object Main extends IOApp {
     } yield makeServerStream(conf.server, routes).merge(deleteFooConsumer.stream)
 
   private def makeRoutes[F[_]: Async](
-    serverEndpoints: List[ServerEndpoint[Any, F]]
+    serverEndpoints: ServerEndpoints[F]
   ): HttpRoutes[F] = {
     val swaggerUiEndpoints =
       SwaggerInterpreter()

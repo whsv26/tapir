@@ -10,9 +10,8 @@ import domain.foos.{FooId, FooService}
 
 import cats.effect.kernel.Sync
 import eu.timepit.refined.types.numeric.NonNegInt
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.generic.auto._
 import io.circe.refined._
-import io.circe.{Decoder, Encoder}
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
@@ -44,11 +43,6 @@ object CreateFooEndpoint {
       )
 
   final case class CreateFoo(a: NonNegInt, b: Boolean)
-
-  object CreateFoo {
-    implicit val encoder: Encoder[CreateFoo] = deriveEncoder[CreateFoo]
-    implicit val decoder: Decoder[CreateFoo] = deriveDecoder[CreateFoo]
-  }
 
   private object AlreadyExistsApiError extends EntityAlreadyExists("Foo")
 }

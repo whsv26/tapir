@@ -13,6 +13,8 @@ import sttp.tapir.{Endpoint, auth, endpoint, statusCode, stringBody}
 package object security {
   type SecuredRoute[F[_], IN, OUT] = ServerEndpoint.Full[Token, UserId, IN, ApiError, OUT, Any, F]
   type PublicRoute[F[_], IN, OUT] = ServerEndpoint.Full[Unit, Unit, IN, ApiError, OUT, Any, F]
+  type ServerEndpoints[F[_]] = List[ServerEndpoint[Any, F]]
+  type Endpoints = List[Endpoint[_, _, _, _, _]]
 
   val securedEndpoint: Endpoint[Token, Unit, ApiError, Unit, Any] =
     endpoint
