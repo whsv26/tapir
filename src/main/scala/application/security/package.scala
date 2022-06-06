@@ -11,8 +11,10 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{Endpoint, auth, endpoint, statusCode, stringBody}
 
 package object security {
-  type SecuredRoute[F[_], IN, OUT] = ServerEndpoint.Full[Token, UserId, IN, ApiError, OUT, Any, F]
-  type PublicRoute[F[_], IN, OUT] = ServerEndpoint.Full[Unit, Unit, IN, ApiError, OUT, Any, F]
+  type SecuredServerRoute[F[_], IN, OUT] = ServerEndpoint.Full[Token, UserId, IN, ApiError, OUT, Any, F]
+  type SecuredRoute[IN, OUT] = Endpoint[Token, IN, ApiError, OUT, Any]
+  type PublicServerRoute[F[_], IN, OUT] = ServerEndpoint.Full[Unit, Unit, IN, ApiError, OUT, Any, F]
+  type PublicRoute[IN, OUT] = Endpoint[Unit, IN, ApiError, OUT, Any]
   type ServerEndpoints[F[_]] = List[ServerEndpoint[Any, F]]
   type Endpoints = List[Endpoint[_, _, _, _, _]]
 

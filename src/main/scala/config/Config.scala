@@ -39,7 +39,7 @@ object Config {
   )
 
   object AppConfig {
-    def apply[F[_]: Sync](path: String): Resource[F, AppConfig] =
+    def read[F[_]: Sync](path: String): Resource[F, AppConfig] =
       Resource.eval {
         Sync[F].delay(ConfigSource.resources(path))
           .map(_.load[AppConfig].leftMap(ConfigError))

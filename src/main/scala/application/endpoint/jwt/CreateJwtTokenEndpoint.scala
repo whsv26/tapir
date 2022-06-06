@@ -3,7 +3,7 @@ package application.endpoint.jwt
 
 import application.endpoint.jwt.CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
 import application.error.{ApiError, ApiErrorLike, EntityNotFound}
-import application.security.PublicRoute
+import application.security.{PublicRoute, PublicServerRoute}
 import domain.auth.AuthService.{InvalidPassword, UserNotFound}
 import domain.auth.{AuthService, Token}
 import domain.users.{PlainPassword, UserName}
@@ -16,7 +16,7 @@ import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 
 class CreateJwtTokenEndpoint[F[_]: Sync](auth: AuthService[F]) {
-  lazy val route: PublicRoute[F, CreateJwtToken, Token] =
+  lazy val route: PublicServerRoute[F, CreateJwtToken, Token] =
     CreateJwtTokenEndpoint.route
       .serverLogic[F] { in => auth
         .signIn(UserName(in.name), PlainPassword(in.password))
@@ -29,7 +29,7 @@ class CreateJwtTokenEndpoint[F[_]: Sync](auth: AuthService[F]) {
 }
 
 object CreateJwtTokenEndpoint {
-  lazy val route: Endpoint[Unit, CreateJwtToken, ApiError, Token, Any] =
+  lazy val route: PublicRoute[CreateJwtToken, Token] =
     endpoint
       .summary("Sign in")
       .in("api" / "v1" / "token")

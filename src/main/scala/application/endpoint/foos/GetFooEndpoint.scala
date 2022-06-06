@@ -3,8 +3,8 @@ package application.endpoint.foos
 
 import application.endpoint.foos.GetFooEndpoint.NotFoundApiError
 import application.error.{ApiError, EntityNotFound}
-import application.security.{SecuredRoute, securedEndpoint, tokenAuth}
-import domain.auth.{Token, TokenAlg}
+import application.security.{SecuredRoute, SecuredServerRoute, securedEndpoint, tokenAuth}
+import domain.auth.TokenAlg
 import domain.foos.{Foo, FooId, FooService}
 
 import cats.effect.kernel.Sync
@@ -17,7 +17,7 @@ class GetFooEndpoint[F[_]: Sync](
   fooService: FooService[F],
   tokens: TokenAlg[F]
 ) {
-  lazy val route: SecuredRoute[F, FooId, Foo] =
+  lazy val route: SecuredServerRoute[F, FooId, Foo] =
     GetFooEndpoint.route
       .serverSecurityLogic(tokenAuth(tokens))
       .serverLogic { _ => fooId =>
@@ -28,7 +28,7 @@ class GetFooEndpoint[F[_]: Sync](
 }
 
 object GetFooEndpoint {
-  lazy val route: Endpoint[Token, FooId, ApiError, Foo, Any] =
+  lazy val route: SecuredRoute[FooId, Foo] =
     securedEndpoint
       .summary("Get foo info")
       .get

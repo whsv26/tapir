@@ -3,8 +3,8 @@ package application.endpoint.foos
 
 import application.endpoint.foos.CreateFooEndpoint._
 import application.error.{ApiError, EntityAlreadyExists}
-import application.security.{SecuredRoute, securedEndpoint, tokenAuth}
-import domain.auth.{Token, TokenAlg}
+import application.security.{SecuredRoute, SecuredServerRoute, securedEndpoint, tokenAuth}
+import domain.auth.TokenAlg
 import domain.foos.FooValidationAlg.FooAlreadyExists
 import domain.foos.{FooId, FooService}
 
@@ -20,7 +20,7 @@ class CreateFooEndpoint[F[_]: Sync](
   foos: FooService[F],
   tokens: TokenAlg[F]
 ) {
-  lazy val route: SecuredRoute[F, CreateFoo, FooId] =
+  lazy val route: SecuredServerRoute[F, CreateFoo, FooId] =
     CreateFooEndpoint.route
       .serverSecurityLogic(tokenAuth(tokens))
       .serverLogic { _ => command =>
@@ -31,7 +31,7 @@ class CreateFooEndpoint[F[_]: Sync](
 }
 
 object CreateFooEndpoint {
-  lazy val route: Endpoint[Token, CreateFoo, ApiError, FooId, Any] =
+  lazy val route: SecuredRoute[CreateFoo, FooId] =
     securedEndpoint
       .summary("Create new foo")
       .post

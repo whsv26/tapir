@@ -28,7 +28,7 @@ class DeleteFooConsumer[F[_]: Async](
     .withGroupId("foo-delete-group")
     .withPollInterval(1.second)
 
-  def stream: Stream[F, Unit] = {
+  def start: Resource[F, Unit] =
     KafkaConsumer
       .stream[F, FooId, FooId](consumerSettings)
       .subscribeTo("foo-delete-topic")
@@ -40,15 +40,15 @@ class DeleteFooConsumer[F[_]: Async](
           .as(committable.offset)
       }
       .through(commitBatchWithin(500, 10.seconds))
-  }
+      .compile
+      .resource
+      .drain
 }
 
 object DeleteFooConsumer {
-  def apply[F[_]: Async](
+  def start[F[_]: Async](
     foos: FooService[F],
     conf: AppConfig
-  ): Resource[F, DeleteFooConsumer[F]] =
-    Resource.suspend(Sync.Type.Delay) {
-      new DeleteFooConsumer[F](foos, conf)
-    }
+  ): Resource[F, Unit] =
+    new DeleteFooConsumer[F](foos, conf).start
 }
