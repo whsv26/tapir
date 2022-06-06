@@ -21,7 +21,7 @@ import sttp.tapir.swagger.bundle.SwaggerInterpreter
 object Main extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
-    application[IO].use(_ => IO(ExitCode.Success))
+    application[IO].use(_ => IO.never)
 
   private def application[F[_]: Async]: Resource[F, Unit] =
     for {

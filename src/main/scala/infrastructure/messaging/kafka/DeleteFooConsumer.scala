@@ -4,7 +4,7 @@ package infrastructure.messaging.kafka
 import config.Config.AppConfig
 import domain.foos.{FooId, FooService}
 
-import cats.effect.kernel.{Async, Resource, Sync}
+import cats.effect.kernel.{Async, Resource, Spawn, Sync}
 import cats.implicits._
 import fs2.Stream
 import fs2.kafka._
@@ -28,7 +28,7 @@ class DeleteFooConsumer[F[_]: Async](
     .withGroupId("foo-delete-group")
     .withPollInterval(1.second)
 
-  def start: Resource[F, Unit] =
+  def start: F[Unit] =
     KafkaConsumer
       .stream[F, FooId, FooId](consumerSettings)
       .subscribeTo("foo-delete-topic")
@@ -41,14 +41,18 @@ class DeleteFooConsumer[F[_]: Async](
       }
       .through(commitBatchWithin(500, 10.seconds))
       .compile
-      .resource
       .drain
 }
 
 object DeleteFooConsumer {
-  def start[F[_]: Async](
+  def start[F[_]: Async: Spawn](
     foos: FooService[F],
     conf: AppConfig
   ): Resource[F, Unit] =
-    new DeleteFooConsumer[F](foos, conf).start
+    Resource.eval {
+      Spawn[F].start {
+        new DeleteFooConsumer[F](foos, conf).start
+      }
+    }.void
+
 }
