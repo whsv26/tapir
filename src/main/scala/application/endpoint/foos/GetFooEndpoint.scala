@@ -32,7 +32,7 @@ object GetFooEndpoint {
     securedEndpoint
       .summary("Get foo info")
       .get
-      .in("api" / "v1" / "foo")
+      .in("api" / "v1" / "foos")
       .in(path[FooId])
       .out(jsonBody[Foo])
       .errorOutVariants(

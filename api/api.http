@@ -13,18 +13,29 @@ client.global.set("jwtToken", response.body);
 %}
 
 ### Get foo
-GET {{url}}/foo/{{fooId}}
+GET {{url}}/foos/{{fooId}}
 Authorization: Bearer {{jwtToken}}
 Accept: application/json
 
 
 ### Delete foo
-DELETE {{url}}/foo/{{fooId}}
+DELETE {{url}}/foos/{{fooId}}
 Authorization: Bearer {{jwtToken}}
 Accept: application/json
 
 ### Create foo
-POST {{url}}/foo
+POST {{url}}/foos
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{jwtToken}}
+
+{
+  "a": 999,
+  "b": false
+}
+
+### Update foo
+PATCH {{url}}/foos/{{fooId}}
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{jwtToken}}

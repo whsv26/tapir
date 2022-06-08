@@ -30,6 +30,6 @@ object DeleteFooEndpoint {
     securedEndpoint
       .summary("Delete foo")
       .delete
-      .in("api" / "v1" / "foo" / path[FooId]("fooId"))
+      .in("api" / "v1" / "foos" / path[FooId]("fooId"))
       .out(statusCode(StatusCode.Accepted))
 }

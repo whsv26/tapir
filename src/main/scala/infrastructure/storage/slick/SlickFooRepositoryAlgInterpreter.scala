@@ -2,9 +2,7 @@ package org.whsv26.tapir
 package infrastructure.storage.slick
 
 import domain.foos.{Foo, FooId, FooRepositoryAlg}
-
-import org.whsv26.tapir.application.endpoint.foos.CreateFooEndpoint.CreateFoo
-import SlickFooRepositoryAlgInterpreter.foos
+import infrastructure.storage.slick.SlickFooRepositoryAlgInterpreter.foos
 
 import cats.effect.Async
 import cats.effect.kernel.{Resource, Sync}
@@ -22,18 +20,23 @@ class SlickFooRepositoryAlgInterpreter[F[_]: Async](
   db: DatabaseDef
 ) extends FooRepositoryAlg[F] {
 
-  private def run[R](a: DBIOAction[R, NoStream, Nothing]): F[R] = {
-    val delayed = Async[F].delay(db.run(a))
-    Async[F].fromFuture(delayed)
-  }
+  private def run[R](a: DBIOAction[R, NoStream, Nothing]): F[R] =
+    Async[F].fromFuture {
+      Sync[F].delay(db.run(a))
+    }
 
   override def findById(id: FooId): F[Option[Foo]] = {
     val query = foos.filter(_.id === id.value).result.headOption
     run(query)
   }
 
-  override def create(id: FooId, foo: CreateFoo): F[Foo] = {
-    val stmt = (foos returning foos) += Foo(id, foo.a, foo.b)
+  override def create(foo: Foo): F[Int] = {
+    val stmt = foos += foo
+    run(stmt)
+  }
+
+  override def update(foo: Foo): F[Int] = {
+    val stmt = foos.filter(_.id === foo.id.value).update(foo)
     run(stmt)
   }
 

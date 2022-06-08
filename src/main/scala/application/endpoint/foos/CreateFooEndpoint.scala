@@ -20,29 +20,31 @@ class CreateFooEndpoint[F[_]: Sync](
   foos: FooService[F],
   tokens: TokenAlg[F]
 ) {
-  lazy val route: SecuredServerRoute[F, CreateFoo, FooId] =
+  lazy val route: SecuredServerRoute[F, CreateFoo, CreatedFoo] =
     CreateFooEndpoint.route
       .serverSecurityLogic(tokenAuth(tokens))
-      .serverLogic { _ => command =>
-        foos.create(FooId.next, command)
+      .serverLogic { _ => cmd =>
+        foos.create(FooId.next, cmd)
+          .map(foo => CreatedFoo(foo.id, foo.a, foo.b))
           .leftMap { case FooAlreadyExists(id) => AlreadyExistsApiError(id.value.toString) }
           .value
       }
 }
 
 object CreateFooEndpoint {
-  lazy val route: SecuredRoute[CreateFoo, FooId] =
+  lazy val route: SecuredRoute[CreateFoo, CreatedFoo] =
     securedEndpoint
       .summary("Create new foo")
       .post
-      .in("api" / "v1" / "foo")
+      .in("api" / "v1" / "foos")
       .in(jsonBody[CreateFoo])
-      .out(jsonBody[FooId])
+      .out(jsonBody[CreatedFoo])
       .errorOutVariants(
         oneOfVariant(AlreadyExistsApiError.out.mapTo[ApiError]),
       )
 
   final case class CreateFoo(a: NonNegInt, b: Boolean)
+  final case class CreatedFoo(id: FooId, a: NonNegInt, b: Boolean)
 
   private object AlreadyExistsApiError extends EntityAlreadyExists("Foo")
 }

@@ -1,7 +1,8 @@
 package org.whsv26.tapir
 package domain.foos
 
-import org.whsv26.tapir.application.endpoint.foos.CreateFooEndpoint.CreateFoo
+import application.endpoint.foos.CreateFooEndpoint.CreateFoo
+import application.endpoint.foos.UpdateFooEndpoint.UpdateFoo
 import domain.foos.FooValidationAlg.{FooAlreadyExists, FooDoesNotExist}
 
 import cats.MonadThrow
@@ -13,11 +14,19 @@ final class FooService[F[_]: MonadThrow](
   validation: FooValidationAlg[F],
 ) {
 
-  def create(id: FooId, createFoo: CreateFoo): EitherT[F, FooAlreadyExists, FooId] =
+  def create(id: FooId, cmd: CreateFoo): EitherT[F, FooAlreadyExists, Foo] =
     for {
       _ <- validation.doesNotExist(id)
-      foo <- EitherT.liftF(foos.create(id, createFoo))
-    } yield foo.id
+      foo = Foo(FooId.next, cmd.a, cmd.b)
+      _ <- EitherT.liftF(foos.create(foo))
+    } yield foo
+
+  def update(id: FooId, cmd: UpdateFoo): EitherT[F, FooDoesNotExist, Foo] =
+    for {
+      _ <- validation.exist(id)
+      foo = Foo(id, cmd.a, cmd.b)
+      _ <- EitherT.liftF(foos.update(foo))
+    } yield foo
 
   def delete(id: FooId): EitherT[F, FooDoesNotExist, Unit] =
     for {
