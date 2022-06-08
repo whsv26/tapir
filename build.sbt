@@ -15,6 +15,7 @@ val fs2KafkaVersion = "3.0.0-M4"
 val tsecVersion = "0.4.0"
 val newTypeVersion = "0.4.4"
 val refinedVersion = "0.9.28"
+val chimneyVersion = "0.6.1"
 
 lazy val root = (project in file("."))
   .settings(
@@ -68,4 +69,6 @@ libraryDependencies ++= Seq(
   "eu.timepit" %% "refined" % refinedVersion,
   "eu.timepit" %% "refined-cats" % refinedVersion,
   "eu.timepit" %% "refined-pureconfig" % refinedVersion,
+
+  "io.scalaland" %% "chimney" % chimneyVersion,
 )

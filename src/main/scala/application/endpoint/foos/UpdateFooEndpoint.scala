@@ -6,12 +6,13 @@ import application.error.{ApiError, EntityNotFound}
 import application.security.{SecuredRoute, SecuredServerRoute, securedEndpoint, tokenAuth}
 import domain.auth.TokenAlg
 import domain.foos.FooValidationAlg.FooDoesNotExist
-import domain.foos.{FooId, FooService}
+import domain.foos.{Foo, FooId, FooService}
 
 import cats.effect.kernel.Sync
 import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.auto._
 import io.circe.refined._
+import io.scalaland.chimney.dsl.TransformerOps
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
@@ -24,8 +25,8 @@ class UpdateFooEndpoint[F[_]: Sync](
     UpdateFooEndpoint.route
       .serverSecurityLogic(tokenAuth(tokens))
       .serverLogic { _ => { case (id, cmd) =>
-        foos.update(id, cmd)
-          .map(foo => UpdatedFoo(foo.id, foo.a, foo.b))
+        foos.update(Foo(id, cmd.a, cmd.b))
+          .map(_.transformInto[UpdatedFoo])
           .leftMap { case FooDoesNotExist(id) => NotFoundApiError(id.value.toString) }
           .value
       }}
@@ -44,8 +45,9 @@ object UpdateFooEndpoint {
         oneOfVariant(NotFoundApiError.out.mapTo[ApiError]),
       )
 
-  final case class UpdateFoo(a: NonNegInt, b: Boolean)
-  final case class UpdatedFoo(id: FooId, a: NonNegInt, b: Boolean)
+  private[foos] case class UpdateFoo(a: NonNegInt, b: Boolean)
+
+  private[foos] case class UpdatedFoo(id: FooId, a: NonNegInt, b: Boolean)
 
   private object NotFoundApiError extends EntityNotFound("Foo")
 }

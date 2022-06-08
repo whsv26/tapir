@@ -14,17 +14,15 @@ final class FooService[F[_]: MonadThrow](
   validation: FooValidationAlg[F],
 ) {
 
-  def create(id: FooId, cmd: CreateFoo): EitherT[F, FooAlreadyExists, Foo] =
+  def create(foo: Foo): EitherT[F, FooAlreadyExists, Foo] =
     for {
-      _ <- validation.doesNotExist(id)
-      foo = Foo(FooId.next, cmd.a, cmd.b)
+      _ <- validation.doesNotExist(foo.id)
       _ <- EitherT.liftF(foos.create(foo))
     } yield foo
 
-  def update(id: FooId, cmd: UpdateFoo): EitherT[F, FooDoesNotExist, Foo] =
+  def update(foo: Foo): EitherT[F, FooDoesNotExist, Foo] =
     for {
-      _ <- validation.exist(id)
-      foo = Foo(id, cmd.a, cmd.b)
+      _ <- validation.exist(foo.id)
       _ <- EitherT.liftF(foos.update(foo))
     } yield foo
 
