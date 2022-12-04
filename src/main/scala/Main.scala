@@ -1,20 +1,17 @@
 package org.whsv26.tapir
 
-import application.endpoint.{foos, jwt}
-import application.security.ServerEndpoints
 import config.Config.AppConfig
-import domain.auth.{AuthService, JwtClockAlg}
-import domain.foos.{FooService, FooValidationAlgInterpreter}
-import infrastructure.auth.{BCryptHasherAlgInterpreter, JwtTokenAlgInterpreter}
-import infrastructure.http.Http4sServer
-import infrastructure.messaging.kafka.{DeleteFooConsumer, DeleteFooProducer}
-import infrastructure.storage.inmemory.MemUserRepositoryAlgInterpreter
-import infrastructure.storage.slick.{SlickDatabaseFactory, SlickFooRepositoryAlgInterpreter}
+import util.http.Http4sServer
 
 import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
 import org.http4s.HttpRoutes
+import org.whsv26.tapir.auth.{AuthService, BCryptHasherAlgInterpreter, JwtClockAlg, JwtTokenAlgInterpreter, MemUserRepositoryAlgInterpreter}
+import org.whsv26.tapir.foos.{FooService, FooValidationAlgInterpreter, SlickFooRepositoryAlgInterpreter}
+import org.whsv26.tapir.foos.delete.{DeleteFooConsumer, DeleteFooProducer}
+import org.whsv26.tapir.util.http.security.ServerEndpoints
+import org.whsv26.tapir.util.slick.SlickDatabaseFactory
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
@@ -31,15 +28,15 @@ object Main extends IOApp {
       userRepositoryAlg <- MemUserRepositoryAlgInterpreter[F]
       hasherAlg         <- BCryptHasherAlgInterpreter(12)
       fooRepositoryAlg  <- SlickFooRepositoryAlgInterpreter(db)
-      fooValidationAlg  <- FooValidationAlgInterpreter(fooRepositoryAlg)
+      fooValidationAlg  <- foos.FooValidationAlgInterpreter(fooRepositoryAlg)
       jwtTokenAlg       <- JwtTokenAlgInterpreter(conf.jwt, jwtClockAlg)
-      fooService        <- FooService(fooRepositoryAlg, fooValidationAlg)
+      fooService        <- foos.FooService(fooRepositoryAlg, fooValidationAlg)
       authService       <- AuthService(jwtTokenAlg, userRepositoryAlg, hasherAlg)
       deleteFooProducer <- DeleteFooProducer(conf)
 
       routes = http4sRoutes[F](List(
         foos.serverEndpoints(fooService, jwtTokenAlg, deleteFooProducer),
-        jwt.serverEndpoints(authService),
+        auth.serverEndpoints(authService),
       ).flatten)
 
       _ <- DeleteFooConsumer.start(fooService, conf)
