@@ -2,13 +2,12 @@ package org.whsv26.tapir
 package auth
 
 import auth.UserValidationAlg.{UserAlreadyExists, UserDoesNotExist}
-import domain.users.UserId
 
 import cats.data.EitherT
 
 trait UserValidationAlg[F[_]] {
-  def doesNotExist(id: UserId): EitherT[F, UserAlreadyExists, Unit]
-  def exist(id: UserId): EitherT[F, UserDoesNotExist, Unit]
+  def doesNotExist(id: User.Id): EitherT[F, UserAlreadyExists, Unit]
+  def exist(id: User.Id): EitherT[F, UserDoesNotExist, Unit]
 }
 
 object UserValidationAlg {
