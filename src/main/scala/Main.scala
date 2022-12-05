@@ -1,17 +1,20 @@
 package org.whsv26.tapir
 
-import config.Config.AppConfig
+import auth._
+import config.Config.{AppConfig, DbConfig}
+import foos.SlickFooRepositoryAlgInterpreter
+import foos.delete.{DeleteFooConsumer, DeleteFooProducer}
 import util.http.Http4sServer
+import util.http.security.ServerEndpoints
+import util.slick.SlickDatabaseFactory
 
 import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
+import doobie.hikari.HikariTransactor
+import doobie.util.ExecutionContexts
+import doobie.util.transactor.Transactor
 import org.http4s.HttpRoutes
-import org.whsv26.tapir.auth.{AuthService, BCryptHasherAlgInterpreter, JwtClockAlg, JwtTokenAlgInterpreter, MemUserRepositoryAlgInterpreter}
-import org.whsv26.tapir.foos.{FooService, FooValidationAlgInterpreter, SlickFooRepositoryAlgInterpreter}
-import org.whsv26.tapir.foos.delete.{DeleteFooConsumer, DeleteFooProducer}
-import org.whsv26.tapir.util.http.security.ServerEndpoints
-import org.whsv26.tapir.util.slick.SlickDatabaseFactory
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
@@ -24,6 +27,7 @@ object Main extends IOApp {
     for {
       conf              <- AppConfig.read("config/app.conf")
       db                <- SlickDatabaseFactory(conf.db)
+      transactor        <- mkTransactor(conf.db)
       jwtClockAlg       <- JwtClockAlg[F]
       userRepositoryAlg <- MemUserRepositoryAlgInterpreter[F]
       hasherAlg         <- BCryptHasherAlgInterpreter(12)
@@ -58,4 +62,17 @@ object Main extends IOApp {
     Http4sServerInterpreter[F].toRoutes(serverEndpoints) <+>
     Http4sServerInterpreter[F].toRoutes(swaggerUiEndpoints)
   }
+
+  private def mkTransactor[F[_]: Async](conf: DbConfig): Resource[F, Transactor[F]] =
+    ExecutionContexts
+      .fixedThreadPool(100)
+      .flatMap { connectionExecutionContext =>
+        HikariTransactor.newHikariTransactor[F](
+          driverClassName = "org.postgresql.Driver",
+          url = conf.url.value,
+          user = conf.user.value,
+          pass = conf.password,
+          connectEC = connectionExecutionContext
+        )
+      }
 }

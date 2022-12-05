@@ -7,7 +7,6 @@ val tapirVersion = "0.20.1"
 val http4sVersion = "0.23.9"
 val logbackVersion = "1.2.10"
 val pureConfigVersion = "0.17.1"
-val doobieVersion = "0.13.4"
 val slickVersion = "3.3.3"
 val postgresVersion = "42.3.3"
 val kafkaVersion = "2.8.0"
@@ -16,6 +15,7 @@ val tsecVersion = "0.4.0"
 val newTypeVersion = "0.4.4"
 val refinedVersion = "0.9.28"
 val chimneyVersion = "0.6.1"
+val doobieVersion = "1.0.0-RC1"
 
 lazy val root = (project in file("."))
   .settings(
@@ -71,4 +71,8 @@ libraryDependencies ++= Seq(
   "eu.timepit" %% "refined-pureconfig" % refinedVersion,
 
   "io.scalaland" %% "chimney" % chimneyVersion,
+
+  "org.tpolecat" %% "doobie-core" % doobieVersion,
+  "org.tpolecat" %% "doobie-hikari" % doobieVersion,
+  "org.tpolecat" %% "doobie-postgres" % doobieVersion,
 )
