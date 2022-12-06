@@ -52,25 +52,25 @@ package object bus {
 
   trait RequestHandlerBase[F[_]] {
     type In <: Request
-    type Out = In#Out
+    final type Out = In#Out
     def tag: ClassTag[In]
     def handle: In => F[Out]
   }
 
   trait RequestHandler[F[_], R <: Request] extends RequestHandlerBase[F] {
-    override type In = R
+    override final type In = R
   }
 
   abstract class QueryHandler[F[_], Q <: QueryRequest](implicit
     queryTag: ClassTag[Q]
   ) extends RequestHandler[F, Q] {
-    override def tag: ClassTag[Q] = queryTag
+    override final def tag: ClassTag[Q] = queryTag
   }
 
   abstract class CommandHandler[F[_], C <: CommandRequest](implicit
     commandTag: ClassTag[C]
   ) extends RequestHandler[F, C] {
-    override def tag: ClassTag[C] = commandTag
+    override final def tag: ClassTag[C] = commandTag
   }
 
   trait Mediator[F[_]] {
