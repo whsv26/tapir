@@ -17,6 +17,7 @@ import eu.timepit.refined.types.numeric.NonNegInt
 class CreateHandler[F[_] : MonadCancelThrow](
   xa: Transactor[F]
 ) extends CommandHandler[F, CreateCommand] {
+
   override def handle = { c =>
     val select =
       sql"SELECT id, a, b FROM foos WHERE id = ${c.id.value.toString}"

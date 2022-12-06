@@ -7,6 +7,8 @@ import io.circe.refined._
 import io.circe.{Decoder, Encoder}
 import io.estatico.newtype.macros.newtype
 import sttp.tapir.{Codec, CodecFormat, Schema}
+import doobie.util.Read
+import util.doobie.instances._
 
 import java.util.UUID
 
@@ -19,6 +21,7 @@ final case class Foo(
 object Foo {
   implicit val encoder: Encoder[Foo] = deriveEncoder[Foo]
   implicit val decoder: Decoder[Foo] = deriveDecoder[Foo]
+  implicit val read: Read[Foo] = implicitly
 
   @newtype case class Id(value: UUID)
 

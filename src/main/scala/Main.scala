@@ -14,7 +14,9 @@ import cats.implicits._
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
+import fs2.concurrent.Topic
 import org.http4s.HttpRoutes
+import org.whsv26.tapir.util.bus.{Mediator, Notification}
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
@@ -28,6 +30,8 @@ object Main extends IOApp {
       conf              <- AppConfig.read("config/app.conf")
       db                <- SlickDatabaseFactory(conf.db)
       transactor        <- mkTransactor(conf.db)
+      topic             <- Resource.eval(Topic[F, Notification]) // TODO
+      mediator          <- Resource.pure(new Mediator.Impl[F](topic, Nil, Nil)) // TODO
       jwtClockAlg       <- JwtClockAlg[F]
       userRepositoryAlg <- MemUserRepositoryAlgInterpreter[F]
       hasherAlg         <- BCryptHasherAlgInterpreter(12)
@@ -39,7 +43,7 @@ object Main extends IOApp {
       deleteFooProducer <- DeleteFooProducer(conf)
 
       routes = http4sRoutes[F](List(
-        foos.serverEndpoints(fooService, jwtTokenAlg, deleteFooProducer),
+        foos.serverEndpoints(fooService, jwtTokenAlg, deleteFooProducer, mediator),
         auth.serverEndpoints(authService),
       ).flatten)
 
