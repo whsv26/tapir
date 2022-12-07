@@ -45,9 +45,8 @@ object MediatorTestApp extends IOApp.Simple {
       topic <- Topic[IO, Notification]
 
       mediator = new Mediator.Impl[IO](
-        topic,
+        List(new MyHandler1, new MyHandler2),
         List(new SomethingHappenedHandler1, new SomethingHappenedHandler2, new SomethingElseHappenedHandler),
-        List(new MyHandler1, new MyHandler2)
       )
 
       _ <- List(mediator.send(MyQuery2(1)), mediator.send(MyQuery1(2)).map(_.toString))
@@ -55,7 +54,6 @@ object MediatorTestApp extends IOApp.Simple {
         .flatMap(IO.println)
         .void
 
-      _ <- mediator.start
       _ <- IO.sleep(1.seconds)
       _ <- mediator.publish(SomethingHappened("event happened!"))
       _ <- mediator.publish(SomethingElseHappened("event else happened..."))

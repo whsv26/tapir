@@ -6,6 +6,7 @@ import cats.effect.kernel.Async
 import cats.syntax.functor._
 import fs2.concurrent.Topic
 import fs2.{Pipe, Stream}
+import cats.syntax.traverse._
 
 import scala.reflect.ClassTag
 
@@ -38,9 +39,6 @@ package object bus {
     implicit def tag: ClassTag[In]
 
     def handle: In => F[Unit]
-
-    final def handler: Pipe[F, Notification, Unit] =
-      _.collect { case n: In => n }.evalMap(handle)
   }
 
   abstract class NotificationHandler[F[_], N <: Notification](implicit
@@ -80,14 +78,16 @@ package object bus {
 
   object Mediator {
     class Impl[F[_]: Async](
-      notificationTopic: Topic[F, Notification],
-      notificationHandlers: List[NotificationHandlerBase[F]],
       requestHandlers: List[RequestHandlerBase[F]],
+      notificationHandlers: List[NotificationHandlerBase[F]],
     ) extends Mediator[F] {
 
       private val requestHandlersMap = requestHandlers.map {
         handler => handler.tag.runtimeClass -> handler
       }.toMap
+
+      private val notificationHandlersMap = notificationHandlers
+        .groupBy(_.tag.runtimeClass)
 
       override def send[Out](request: Request.Aux[Out]): F[Out] =
         requestHandlersMap(request.getClass)
@@ -95,21 +95,12 @@ package object bus {
           .handle(request)
 
       override def publish(notification: Notification): F[Unit] =
-        notificationTopic.publish1(notification).void
-
-      def start: F[Unit] =
-        Stream
-          .emits(notificationHandlers)
-          .map(_.handler)
-          .map { handler =>
-            notificationTopic
-              .subscribe(20)
-              .through(handler)
+        notificationHandlersMap(notification.getClass)
+          .traverse { handler =>
+            handler
+              .asInstanceOf[NotificationHandler[F, Notification]]
+              .handle(notification)
           }
-          .parJoinUnbounded
-          .compile
-          .drain
-          .start
           .void
     }
   }

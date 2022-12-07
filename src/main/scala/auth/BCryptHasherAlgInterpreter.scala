@@ -4,11 +4,13 @@ package auth
 import cats.effect.kernel.{Resource, Sync}
 import cats.implicits._
 import User.{PasswordHash, PlainPassword}
+import com.softwaremill.tagging.@@
+import org.whsv26.tapir.auth.BCryptHasherAlgInterpreter.RoundsTag
 import tsec.passwordhashers
 import tsec.passwordhashers.jca.BCrypt
 
 class BCryptHasherAlgInterpreter[F[_]: Sync](
-  rounds: Int
+  rounds: Int @@ RoundsTag
 ) extends HasherAlg[F] {
 
   override def hashPassword(pass: PlainPassword): F[PasswordHash] =
@@ -24,9 +26,11 @@ class BCryptHasherAlgInterpreter[F[_]: Sync](
 
 object BCryptHasherAlgInterpreter {
   def apply[F[_]: Sync](
-    rounds: Int
+    rounds: Int @@ RoundsTag
   ): Resource[F, BCryptHasherAlgInterpreter[F]] =
     Resource.suspend(Sync.Type.Delay) {
       new BCryptHasherAlgInterpreter[F](rounds)
     }
+
+  trait RoundsTag
 }
