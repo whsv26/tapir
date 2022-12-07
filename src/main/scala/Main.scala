@@ -1,9 +1,10 @@
 package org.whsv26.tapir
 
-import auth.{AuthService, _}
+import auth.BCryptHasherAlgInterpreter.RoundsTag
+import auth._
 import config.Config.{AppConfig, DbConfig}
-import foos.{FooService, FooValidationAlgInterpreter, SlickFooRepositoryAlgInterpreter}
 import foos.delete.{DeleteFooConsumer, DeleteFooProducer}
+import foos.{FooService, FooValidationAlgInterpreter, SlickFooRepositoryAlgInterpreter}
 import util.bus.{Mediator, NotificationHandlerBase, RequestHandlerBase}
 import util.http.Http4sServer
 import util.http.security.ServerEndpoints
@@ -13,15 +14,12 @@ import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
 import com.softwaremill.macwire.autocats.autowire
+import com.softwaremill.tagging._
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
-import doobie.util.transactor.Transactor
 import org.http4s.HttpRoutes
-import org.whsv26.tapir.foos.create.CreateHandler
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
-import com.softwaremill.tagging._
-import org.whsv26.tapir.auth.BCryptHasherAlgInterpreter.RoundsTag
 
 object Main extends IOApp {
 
@@ -57,7 +55,7 @@ object Main extends IOApp {
       config.map(_.db),
       config.map(_.jwt),
       SlickDatabaseFactory[IO] _,
-      mkHikariTransactor _,
+      mkTransactor _,
       mkMediator _,
       12.taggedWith[RoundsTag]
     ).flatMap { deps =>
@@ -89,14 +87,11 @@ object Main extends IOApp {
     Http4sServerInterpreter[F].toRoutes(swaggerUiEndpoints)
   }
 
-  private def mkHikariTransactor(conf: DbConfig): Resource[IO, HikariTransactor[IO]] =
-    mkTransactor[IO](conf)
-
-  private def mkTransactor[F[_]: Async](conf: DbConfig): Resource[F, HikariTransactor[F]] =
+  private def mkTransactor(conf: DbConfig): Resource[IO, HikariTransactor[IO]] =
     ExecutionContexts
-      .fixedThreadPool(100)
+      .fixedThreadPool[IO](100)
       .flatMap { connectionExecutionContext =>
-        HikariTransactor.newHikariTransactor[F](
+        HikariTransactor.newHikariTransactor[IO](
           driverClassName = "org.postgresql.Driver",
           url = conf.url.value,
           user = conf.user.value,
