@@ -1,8 +1,8 @@
 package org.whsv26.tapir
-package foos
+package modules.foos
 
-import foos.FooRepository.SlickImpl.foos
-import foos.FooValidation.FooAlreadyExists
+import modules.foos.FooRepository.SlickImpl.foos
+import modules.foos.FooValidation.FooAlreadyExists
 import util.slick._
 
 import cats.effect.Async

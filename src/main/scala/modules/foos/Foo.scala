@@ -1,5 +1,5 @@
 package org.whsv26.tapir
-package foos
+package modules.foos
 
 import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -8,7 +8,7 @@ import io.circe.{Decoder, Encoder}
 import io.estatico.newtype.macros.newtype
 import sttp.tapir.{Codec, CodecFormat, Schema}
 import doobie.util.Read
-import util.doobie.instances._
+import util.doobie._
 
 import java.util.UUID
 

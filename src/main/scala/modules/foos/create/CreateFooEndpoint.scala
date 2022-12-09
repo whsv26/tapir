@@ -1,10 +1,10 @@
 package org.whsv26.tapir
-package foos.create
+package modules.foos.create
 
 import auth.Tokens
-import foos.{CreateFooCommand, Foo}
-import foos.FooValidation.FooAlreadyExists
-import foos.create.CreateFooEndpoint._
+import modules.foos.{CreateFooCommand, Foo}
+import modules.foos.FooValidation.FooAlreadyExists
+import modules.foos.create.CreateFooEndpoint._
 import util.bus.Mediator
 import util.http.error.{ApiError, EntityAlreadyExists}
 import util.http.security._

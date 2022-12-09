@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package foos
+package modules.foos
 
-import foos.FooValidation.{FooAlreadyExists, FooDoesNotExist}
+import modules.foos.FooValidation.{FooAlreadyExists, FooDoesNotExist}
 
 import cats.MonadThrow
 import cats.data.EitherT

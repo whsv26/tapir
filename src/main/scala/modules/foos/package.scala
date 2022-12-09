@@ -1,4 +1,5 @@
 package org.whsv26.tapir
+package modules
 
 import foos.FooValidation.{FooAlreadyExists, FooDoesNotExist}
 import foos.create.{CreateFooEndpoint, CreateFooHandler}

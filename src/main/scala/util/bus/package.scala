@@ -1,11 +1,8 @@
 package org.whsv26.tapir
 package util
 
-import cats.effect.implicits.genSpawnOps
 import cats.effect.kernel.Async
 import cats.syntax.functor._
-import fs2.concurrent.Topic
-import fs2.{Pipe, Stream}
 import cats.syntax.traverse._
 
 import scala.reflect.ClassTag
@@ -87,6 +84,7 @@ package object bus {
       }.toMap
 
       private val notificationHandlersMap = notificationHandlers
+        .toList
         .groupBy(_.tag.runtimeClass)
 
       override def send[Out](request: Request.Aux[Out]): F[Out] =
@@ -96,7 +94,6 @@ package object bus {
 
       override def publish(notification: Notification): F[Unit] =
         notificationHandlersMap(notification.getClass)
-          .toList
           .traverse { handler =>
             handler
               .asInstanceOf[NotificationHandler[F, Notification]]

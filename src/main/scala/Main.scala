@@ -1,7 +1,6 @@
 package org.whsv26.tapir
 
 import config.Config.{AppConfig, DbConfig, JwtConfig, ServerConfig}
-import foos.delete.DeleteFooConsumer
 import util.bus.Mediator
 import util.doobie.DoobieTransactorFactory
 import util.http.Http4sServerFactory
@@ -13,6 +12,8 @@ import distage._
 import doobie.util.transactor.Transactor
 import izumi.distage.model.definition.ModuleDef
 import org.http4s.server.Server
+import org.whsv26.tapir.modules.foos
+import org.whsv26.tapir.modules.foos.delete.DeleteFooConsumer
 import slick.jdbc.JdbcBackend.DatabaseDef
 
 object Main extends IOApp {
@@ -37,7 +38,7 @@ object Main extends IOApp {
       .map(_.get[Application])
   }
 
-  private def appModule[F[_]: Async : TagK] = new ModuleDef {
+  private def appModule[F[_]: Async: TagK] = new ModuleDef {
     include(auth.module[F])
     include(foos.module[F])
 

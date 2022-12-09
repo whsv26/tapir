@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package foos.delete
+package modules.foos.delete
 
-import foos.{DeleteFooCommand, FooService}
+import modules.foos.{DeleteFooCommand, FooService}
 import util.bus.CommandHandler
 import cats.effect.kernel.MonadCancelThrow
 

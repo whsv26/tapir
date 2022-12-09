@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package auth
 
-import cats.effect.kernel.{Resource, Sync}
+import cats.effect.kernel.Sync
 
 import java.time.Clock
 

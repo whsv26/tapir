@@ -1,5 +1,5 @@
 package org.whsv26.tapir
-package foos.delete
+package modules.foos.delete
 
 import config.Config.AppConfig
 
@@ -7,7 +7,7 @@ import cats.effect.implicits.genSpawnOps
 import cats.effect.kernel.{Async, Resource, Spawn}
 import cats.implicits._
 import fs2.kafka._
-import org.whsv26.tapir.foos.{Foo, FooService}
+import org.whsv26.tapir.modules.foos.{Foo, FooService}
 
 import scala.concurrent.duration._
 

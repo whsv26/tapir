@@ -23,7 +23,7 @@ package object security {
       .securityIn(auth.bearer[User.Token]())
       .errorOut(
         statusCode
-          .description(StatusCode.Unauthorized, "Unable to verify jwt-token")
+          .description(StatusCode.Unauthorized, "Unable to verify bearer token")
           .and(stringBody)
           .mapTo[ApiError]
       )

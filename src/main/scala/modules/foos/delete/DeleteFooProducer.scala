@@ -1,12 +1,12 @@
 package org.whsv26.tapir
-package foos.delete
+package modules.foos.delete
 
 import config.Config.AppConfig
 
 import cats.effect.kernel.{Async, Resource, Sync}
 import cats.implicits._
 import fs2.kafka._
-import org.whsv26.tapir.foos.Foo
+import org.whsv26.tapir.modules.foos.Foo
 
 import java.util.UUID
 

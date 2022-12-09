@@ -17,6 +17,7 @@ import tsec.signature.jca.{GeneralSignatureError, SHA256withECDSA}
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
+// TODO review error handling
 class JwtTokens[F[_]: Sync](
   conf: JwtConfig,
   clockAlg: JwtClock[F],
@@ -64,12 +65,4 @@ class JwtTokens[F[_]: Sync](
 
 object JwtTokens {
   case object UnableToDecodeJwtPrivateKey extends Throwable
-
-  def apply[F[_]: Sync](
-    conf: JwtConfig,
-    clockAlg: JwtClock[F],
-  ): Resource[F, JwtTokens[F]] =
-    Resource.suspend(Sync.Type.Delay) {
-      new JwtTokens[F](conf, clockAlg)
-    }
 }

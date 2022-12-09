@@ -1,8 +1,8 @@
 package org.whsv26.tapir
-package foos.read
+package modules.foos.read
 
 import util.http.error.{ApiError, EntityNotFound}
-import foos.read.GetFooEndpoint.{FooView, NotFoundApiError}
+import modules.foos.read.GetFooEndpoint.{FooView, NotFoundApiError}
 
 import cats.data.OptionT
 import cats.effect.kernel.Sync
@@ -11,7 +11,7 @@ import io.circe.generic.auto._
 import io.circe.refined._
 import io.scalaland.chimney.dsl.TransformerOps
 import org.whsv26.tapir.auth.Tokens
-import org.whsv26.tapir.foos.{Foo, FooService}
+import org.whsv26.tapir.modules.foos.{Foo, FooService}
 import org.whsv26.tapir.util.http.security._
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass

@@ -1,8 +1,8 @@
 package org.whsv26.tapir
-package foos.create
+package modules.foos.create
 
-import foos.FooValidation.FooAlreadyExists
-import foos.{CreateFooCommand, Foo}
+import modules.foos.FooValidation.FooAlreadyExists
+import modules.foos.{CreateFooCommand, Foo}
 import util.bus.CommandHandler
 
 import cats.data.EitherT

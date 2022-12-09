@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package foos
+package modules.foos
 
-import foos.FooValidation._
+import modules.foos.FooValidation._
 
 import cats.Functor
 import cats.data.EitherT
