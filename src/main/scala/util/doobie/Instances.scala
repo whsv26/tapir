@@ -9,7 +9,7 @@ import io.estatico.newtype.Coercible
 
 import java.util.UUID
 
-package object instances {
+trait Instances {
   implicit val getUUID: Get[UUID] = Get[String].map(UUID.fromString)
 
   implicit def getForNewType[A: Get, B](implicit C: Coercible[A, B]): Get[B] =

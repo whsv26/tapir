@@ -37,7 +37,7 @@ object Main extends IOApp {
       .map(_.get[Application])
   }
 
-  private def appModule[F[_] : Async : TagK] = new ModuleDef {
+  private def appModule[F[_]: Async : TagK] = new ModuleDef {
     include(auth.module[F])
     include(foos.module[F])
 
