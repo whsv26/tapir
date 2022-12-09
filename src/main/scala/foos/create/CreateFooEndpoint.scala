@@ -2,9 +2,9 @@ package org.whsv26.tapir
 package foos.create
 
 import auth.TokenAlg
-import foos.Foo
-import foos.FooValidationAlg.FooAlreadyExists
-import foos.create.CreateEndpoint._
+import foos.{CreateFooCommand, Foo}
+import foos.FooValidation.FooAlreadyExists
+import foos.create.CreateFooEndpoint._
 import util.bus.Mediator
 import util.http.error.{ApiError, EntityAlreadyExists}
 import util.http.security._
@@ -15,21 +15,20 @@ import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.auto._
 import io.circe.refined._
 import io.scalaland.chimney.dsl.TransformerOps
-import org.whsv26.tapir.foos.create.CreateHandler.CreateCommand
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 
-class CreateEndpoint[F[_]: Sync](
+class CreateFooEndpoint[F[_]: Sync](
   mediator: Mediator[F],
   tokens: TokenAlg[F]
 ) {
   lazy val route: SecuredServerRoute[F, Request, Response] =
-    CreateEndpoint.route
+    CreateFooEndpoint.route
       .serverSecurityLogic(tokenAuth(tokens))
       .serverLogic { _ => request =>
         val command = request
-          .into[CreateCommand]
+          .into[CreateFooCommand]
           .withFieldConst(_.id, Foo.Id.next)
           .transform
 
@@ -40,7 +39,7 @@ class CreateEndpoint[F[_]: Sync](
       }
 }
 
-object CreateEndpoint {
+object CreateFooEndpoint {
   lazy val route: SecuredRoute[Request, Response] =
     securedEndpoint
       .summary("Create new foo")

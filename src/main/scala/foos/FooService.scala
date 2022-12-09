@@ -1,15 +1,15 @@
 package org.whsv26.tapir
 package foos
 
-import foos.FooValidationAlg.{FooAlreadyExists, FooDoesNotExist}
+import foos.FooValidation.{FooAlreadyExists, FooDoesNotExist}
 
 import cats.MonadThrow
 import cats.data.EitherT
 import cats.effect.kernel.{Resource, Sync}
 
 final class FooService[F[_]: MonadThrow](
-  foos: FooRepositoryAlg[F],
-  validation: FooValidationAlg[F],
+  foos: FooRepository[F],
+  validation: FooValidation[F],
 ) {
 
   def create(foo: Foo): EitherT[F, FooAlreadyExists, Foo] =
@@ -32,14 +32,4 @@ final class FooService[F[_]: MonadThrow](
 
   def findById(id: Foo.Id): F[Option[Foo]] =
     foos.findById(id)
-}
-
-object FooService {
-  def apply[F[_]: Sync](
-    foos: FooRepositoryAlg[F],
-    validation: FooValidationAlg[F],
-  ): Resource[F, FooService[F]] =
-    Resource.suspend(Sync.Type.Delay) {
-      new FooService[F](foos, validation)
-    }
 }

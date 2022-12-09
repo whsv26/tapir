@@ -3,8 +3,9 @@ package org.whsv26.tapir
 import auth.BCryptHasherAlgInterpreter.RoundsTag
 import auth._
 import config.Config.{AppConfig, DbConfig}
+import foos.create.CreateFooHandler
 import foos.delete.{DeleteFooConsumer, DeleteFooProducer}
-import foos.{FooService, FooValidationAlgInterpreter, SlickFooRepositoryAlgInterpreter}
+import foos.{FooRepository, FooService, FooValidation}
 import util.bus.{Mediator, NotificationHandlerBase, RequestHandlerBase}
 import util.http.Http4sServer
 import util.http.security.ServerEndpoints
@@ -18,6 +19,7 @@ import com.softwaremill.tagging._
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import org.http4s.HttpRoutes
+import slick.jdbc.JdbcBackend
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
@@ -27,21 +29,21 @@ object Main extends IOApp {
     application.useForever
 
   case class Handlers(
-    createFooHandler: foos.create.CreateHandler[IO]
+    createFooHandler: CreateFooHandler[IO]
   )
 
   case class Deps(
     config: AppConfig,
     jwtClock: JwtClockAlg.SystemClock[IO],
-    tokenAlg: JwtTokenAlgInterpreter[IO],
-    slickDatabaseFactory: slick.jdbc.JdbcBackend.DatabaseDef,
+    jwtToken: JwtTokenAlgInterpreter[IO],
+    slickDatabaseFactory: JdbcBackend.DatabaseDef,
     transactor: HikariTransactor[IO],
     handlers: Handlers,
     mediator: Mediator[IO],
     userRepository: MemUserRepositoryAlgInterpreter[IO],
     hasher: BCryptHasherAlgInterpreter[IO],
-    fooRepository: SlickFooRepositoryAlgInterpreter[IO],
-    fooValidationAlg: FooValidationAlgInterpreter[IO],
+    fooRepository: FooRepository.SlickImpl[IO],
+    fooValidation: FooValidation.Impl[IO],
     fooService: FooService[IO],
     deleteFooProducer: DeleteFooProducer[IO],
     authService: AuthService[IO],
@@ -61,7 +63,7 @@ object Main extends IOApp {
     ).flatMap { deps =>
 
       val routes = http4sRoutes[IO](List(
-        foos.serverEndpoints(deps.fooService, deps.tokenAlg, deps.deleteFooProducer, deps.mediator),
+        foos.serverEndpoints(deps.fooService, deps.jwtToken, deps.deleteFooProducer, deps.mediator),
         auth.serverEndpoints(deps.authService),
       ).flatten)
 

@@ -30,12 +30,3 @@ class DeleteFooProducer[F[_]: Async](conf: AppConfig) {
       .flatten
       .void
 }
-
-object DeleteFooProducer {
-  def apply[F[_]: Async](
-    conf: AppConfig
-  ): Resource[F, DeleteFooProducer[F]] =
-    Resource.suspend(Sync.Type.Delay) {
-      new DeleteFooProducer[F](conf)
-    }
-}

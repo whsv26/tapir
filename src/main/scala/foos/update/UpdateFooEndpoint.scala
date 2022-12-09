@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package foos.update
 
-import foos.FooValidationAlg.FooDoesNotExist
+import foos.FooValidation.FooDoesNotExist
 import foos.update.UpdateFooEndpoint.{NotFoundApiError, UpdateFoo, UpdatedFoo}
 import foos.{Foo, FooService}
 import util.http.error.{ApiError, EntityNotFound}

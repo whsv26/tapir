@@ -1,15 +1,20 @@
 package org.whsv26.tapir
 
-import foos.create.CreateEndpoint
+import auth.TokenAlg
+import foos.create.CreateFooEndpoint
 import foos.delete.{DeleteFooEndpoint, DeleteFooProducer}
 import foos.read.GetFooEndpoint
+import util.bus.{Command, Mediator}
+import util.http.security.{Endpoints, ServerEndpoints}
 
 import cats.effect.kernel.Async
-import org.whsv26.tapir.auth.TokenAlg
-import org.whsv26.tapir.foos.FooService
-import org.whsv26.tapir.util.bus.Mediator
-import org.whsv26.tapir.util.http.security.{Endpoints, ServerEndpoints}
+import eu.timepit.refined.types.numeric.NonNegInt
+import org.whsv26.tapir.foos.FooValidation.FooAlreadyExists
 
+/**
+ * Transaction script for simple CRUD modules
+ * Commands, Queries and Events are module public contract
+ */
 package object foos {
   def serverEndpoints[F[_]: Async](
     foos: FooService[F],
@@ -18,14 +23,22 @@ package object foos {
     mediator: Mediator[F]
   ): ServerEndpoints[F] =
     List(
-      new CreateEndpoint(mediator, tokens).route,
+      new CreateFooEndpoint(mediator, tokens).route,
       new GetFooEndpoint(foos, tokens).route,
       new DeleteFooEndpoint(producer, tokens).route,
     )
 
   val endpoints: Endpoints = List(
-    CreateEndpoint.route,
+    CreateFooEndpoint.route,
     GetFooEndpoint.route,
     DeleteFooEndpoint.route,
   )
+
+  case class CreateFooCommand(
+    id: Foo.Id,
+    a: NonNegInt,
+    b: Boolean
+  ) extends Command[Either[FooAlreadyExists, Foo]]
+
+  case class DeleteFooCommand(id: Foo.Id) extends Command[Unit]
 }

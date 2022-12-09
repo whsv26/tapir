@@ -1,10 +1,9 @@
 package org.whsv26.tapir
 package foos.create
 
-import foos.Foo
-import foos.FooValidationAlg.FooAlreadyExists
-import foos.create.CreateHandler.CreateCommand
-import util.bus.{Command, CommandHandler}
+import foos.FooValidation.FooAlreadyExists
+import foos.{CreateFooCommand, Foo}
+import util.bus.CommandHandler
 
 import cats.data.EitherT
 import cats.effect.kernel.MonadCancelThrow
@@ -12,11 +11,10 @@ import cats.syntax.functor._
 import doobie.implicits._
 import doobie.postgres._
 import doobie.util.transactor.Transactor
-import eu.timepit.refined.types.numeric.NonNegInt
 
-class CreateHandler[F[_] : MonadCancelThrow](
+class CreateFooHandler[F[_]: MonadCancelThrow](
   xa: Transactor[F]
-) extends CommandHandler[F, CreateCommand] {
+) extends CommandHandler[F, CreateFooCommand] {
 
   override def handle = { c =>
     val select =
@@ -38,12 +36,4 @@ class CreateHandler[F[_] : MonadCancelThrow](
 
     EitherT(insert).semiflatMap(_ => select).value
   }
-}
-
-object CreateHandler {
-  case class CreateCommand(
-    id: Foo.Id,
-    a: NonNegInt,
-    b: Boolean
-  ) extends Command[Either[FooAlreadyExists, Foo]]
 }
