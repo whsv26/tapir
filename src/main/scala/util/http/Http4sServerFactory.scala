@@ -15,8 +15,8 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
-object Http4sServer {
-  def make[F[_]: Async](
+object Http4sServerFactory {
+  def apply[F[_]: Async](
     conf: ServerConfig,
     endpoints: Set[ServerEndpoint[Any, F]]
   ): Resource[F, Server] = {

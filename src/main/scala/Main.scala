@@ -4,7 +4,7 @@ import config.Config.{AppConfig, DbConfig, JwtConfig, ServerConfig}
 import foos.delete.DeleteFooConsumer
 import util.bus.Mediator
 import util.doobie.DoobieTransactorFactory
-import util.http.Http4sServer
+import util.http.Http4sServerFactory
 import util.slick.SlickDatabaseDefFactory
 
 import cats.effect._
@@ -45,10 +45,10 @@ object Main extends IOApp {
     make[DbConfig].from((conf: AppConfig) => conf.db)
     make[JwtConfig].from((conf: AppConfig) => conf.jwt)
     make[ServerConfig].from((conf: AppConfig) => conf.server)
+    make[Mediator[F]].from[Mediator.Impl[F]]
     make[DatabaseDef].fromResource(SlickDatabaseDefFactory[F] _)
     make[Transactor[F]].fromResource(DoobieTransactorFactory[F] _)
-    make[Mediator[F]].from[Mediator.Impl[F]]
-    make[Server].fromResource(Http4sServer.make[F] _)
+    make[Server].fromResource(Http4sServerFactory[F] _)
     make[Application]
   }
 }
