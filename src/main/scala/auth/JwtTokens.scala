@@ -1,9 +1,9 @@
 package org.whsv26.tapir
 package auth
 
-import auth.JwtTokenAlgInterpreter.UnableToDecodeJwtPrivateKey
+import auth.JwtTokens.UnableToDecodeJwtPrivateKey
 import config.Config.JwtConfig
-import TokenAlg.TokenVerificationError
+import Tokens.TokenVerificationError
 
 import cats.data.EitherT
 import cats.effect.Resource
@@ -17,10 +17,10 @@ import tsec.signature.jca.{GeneralSignatureError, SHA256withECDSA}
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-class JwtTokenAlgInterpreter[F[_]: Sync](
+class JwtTokens[F[_]: Sync](
   conf: JwtConfig,
-  clockAlg: JwtClockAlg[F],
-) extends TokenAlg[F] {
+  clockAlg: JwtClock[F],
+) extends Tokens[F] {
 
   override def verifyToken(token: User.Token): EitherT[F, TokenVerificationError, User.Id] = {
     val pubKeyBytes = conf.publicKey
@@ -62,14 +62,14 @@ class JwtTokenAlgInterpreter[F[_]: Sync](
       .withExpiry(expiredAt)
 }
 
-object JwtTokenAlgInterpreter {
+object JwtTokens {
   case object UnableToDecodeJwtPrivateKey extends Throwable
 
   def apply[F[_]: Sync](
     conf: JwtConfig,
-    clockAlg: JwtClockAlg[F],
-  ): Resource[F, JwtTokenAlgInterpreter[F]] =
+    clockAlg: JwtClock[F],
+  ): Resource[F, JwtTokens[F]] =
     Resource.suspend(Sync.Type.Delay) {
-      new JwtTokenAlgInterpreter[F](conf, clockAlg)
+      new JwtTokens[F](conf, clockAlg)
     }
 }

@@ -5,13 +5,12 @@ import auth.User.{PasswordHash, PlainPassword}
 
 import cats.effect.kernel.Sync
 import cats.implicits._
-import distage.Id
 import tsec.passwordhashers
 import tsec.passwordhashers.jca.BCrypt
 
-class BCryptHasherAlgInterpreter[F[_]: Sync]/* TODO (
+class BCryptHasher[F[_]: Sync]/* TODO (
   rounds: Int @Id("rounds")
-)*/ extends HasherAlg[F] {
+)*/ extends Hasher[F] {
 
   override def hashPassword(pass: PlainPassword): F[PasswordHash] =
     BCrypt.hashpwWithRounds[F](pass.value, 12) // TODO

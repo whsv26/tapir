@@ -7,13 +7,13 @@ import distage.{Tag, TagK}
 import izumi.distage.model.definition.ModuleDef
 
 package object auth {
-  def authModule[F[_]: TagK] = new ModuleDef {
-    make[HasherAlg[F]].from[BCryptHasherAlgInterpreter[F]]
+  def module[F[_]: TagK] = new ModuleDef {
     make[AuthService[F]]
     make[CreateJwtTokenEndpoint[F]]
-    make[JwtClockAlg[F]].from[JwtClockAlg.SystemClockImpl[F]]
-    make[TokenAlg[F]].from[JwtTokenAlgInterpreter[F]]
-    make[UserRepositoryAlg[F]].from[MemUserRepositoryAlgInterpreter[F]]
+    make[Hasher[F]].from[BCryptHasher[F]]
+    make[JwtClock[F]].from[JwtClock.SystemImpl[F]]
+    make[Tokens[F]].from[JwtTokens[F]]
+    make[UserRepository[F]].from[InMemoryUserRepository[F]]
   }
 
   def serverEndpoints[F[_]: Sync](

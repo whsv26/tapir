@@ -4,7 +4,7 @@ package util.http
 import util.http.error.ApiError
 
 import cats.Functor
-import org.whsv26.tapir.auth.{TokenAlg, User}
+import org.whsv26.tapir.auth.{Tokens, User}
 import sttp.model.StatusCode
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{Endpoint, auth, endpoint, statusCode, stringBody}
@@ -29,7 +29,7 @@ package object security {
       )
 
   def tokenAuth[F[_]: Functor](
-    tokens: TokenAlg[F]
+    tokens: Tokens[F]
   ): User.Token => F[Either[ApiError, User.Id]] =
     token =>
       tokens.verifyToken(token)

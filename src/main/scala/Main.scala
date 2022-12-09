@@ -4,24 +4,24 @@ import auth._
 import config.Config.{AppConfig, DbConfig, JwtConfig}
 import foos.create.CreateFooHandler
 import foos.delete.{DeleteFooConsumer, DeleteFooHandler, DeleteFooProducer}
-import foos.{FooRepository, FooService, FooValidation, foosModule}
+import foos.{FooRepository, FooService, FooValidation}
 import util.bus.{Mediator, NotificationHandlerBase, RequestHandlerBase}
 import util.http.Http4sServer
 import util.http.security.ServerEndpoints
+import util.slick.SlickDatabaseFactory
 
 import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
-import distage.{Activation, Injector, Lifecycle, Roots, Tag, TagK}
+import distage._
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
+import izumi.distage.model.definition.ModuleDef
 import org.http4s.HttpRoutes
 import slick.jdbc.JdbcBackend
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
-import izumi.distage.model.definition.ModuleDef
-import org.whsv26.tapir.util.slick.SlickDatabaseFactory
 
 object Main extends IOApp {
 
@@ -35,14 +35,14 @@ object Main extends IOApp {
 
   case class Deps(
     config: AppConfig,
-    jwtClock: JwtClockAlg.SystemClockImpl[IO],
-    jwtToken: JwtTokenAlgInterpreter[IO],
+    jwtClock: JwtClock.SystemImpl[IO],
+    jwtToken: JwtTokens[IO],
     slickDatabaseFactory: JdbcBackend.DatabaseDef,
     transactor: HikariTransactor[IO],
     handlers: Handlers,
     mediator: Mediator[IO],
-    userRepository: MemUserRepositoryAlgInterpreter[IO],
-    hasher: BCryptHasherAlgInterpreter[IO],
+    userRepository: InMemoryUserRepository[IO],
+    hasher: BCryptHasher[IO],
     fooRepository: FooRepository.SlickImpl[IO],
     fooValidation: FooValidation.Impl[IO],
     fooService: FooService[IO],
@@ -51,29 +51,22 @@ object Main extends IOApp {
   )
 
   def appModule[F[_]: Async: TagK] = new ModuleDef {
-    include(authModule[F])
-    include(foosModule[F])
+    include(auth.module[F])
+    include(foos.module[F])
 
     make[AppConfig].fromEffect(AppConfig.read[F]("config/app.conf"))
     make[DbConfig].from((conf: AppConfig) => conf.db)
     make[JwtConfig].from((conf: AppConfig) => conf.jwt)
-
     make[JdbcBackend.DatabaseDef].fromResource(SlickDatabaseFactory[IO] _)
     make[Transactor[F]].fromResource(mkTransactor[F] _)
     make[Mediator[F]].from[Mediator.Impl[F]]
-
     make[Handlers]
     make[Deps]
   }
 
   private def application: Lifecycle[IO, Unit] = {
-    val injector: Injector[IO] = Injector[IO]()
-
-    val plan = injector.plan(
-      appModule[IO],
-      Activation.empty,
-      Roots.target[Deps]
-    )
+    val injector = Injector[IO]()
+    val plan = injector.plan(appModule[IO], Activation.empty, Roots.target[Deps])
 
     injector
       .produce(plan)

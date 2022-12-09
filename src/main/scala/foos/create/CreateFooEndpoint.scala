@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package foos.create
 
-import auth.TokenAlg
+import auth.Tokens
 import foos.{CreateFooCommand, Foo}
 import foos.FooValidation.FooAlreadyExists
 import foos.create.CreateFooEndpoint._
@@ -21,7 +21,7 @@ import sttp.tapir.json.circe.jsonBody
 
 class CreateFooEndpoint[F[_]: Sync](
   mediator: Mediator[F],
-  tokens: TokenAlg[F]
+  tokens: Tokens[F]
 ) {
   lazy val route: SecuredServerRoute[F, Request, Response] =
     CreateFooEndpoint.route

@@ -9,9 +9,9 @@ import cats.data.{EitherT, OptionT}
 import cats.effect.kernel.{Resource, Sync}
 
 final class AuthService[F[_]: Monad](
-  tokens: TokenAlg[F],
-  users: UserRepositoryAlg[F],
-  hasher: HasherAlg[F]
+  tokens: Tokens[F],
+  users: UserRepository[F],
+  hasher: Hasher[F]
 ) {
 
   def signIn(name: User.Name, pass: PlainPassword): EitherT[F, AuthError, User.Token] =
@@ -41,9 +41,9 @@ object AuthService {
   case object InvalidPassword extends AuthError
 
   def apply[F[_]: Sync](
-    tokens: TokenAlg[F],
-    users: UserRepositoryAlg[F],
-    hasher: HasherAlg[F]
+    tokens: Tokens[F],
+    users: UserRepository[F],
+    hasher: Hasher[F]
   ): Resource[F, AuthService[F]] =
     Resource.suspend(Sync.Type.Delay) {
       new AuthService[F](tokens, users, hasher)

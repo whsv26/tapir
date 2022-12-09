@@ -7,7 +7,7 @@ import cats.effect.kernel.{Resource, Sync}
 
 import java.util.UUID
 
-class MemUserRepositoryAlgInterpreter[F[_]: Sync] extends UserRepositoryAlg[F] {
+class InMemoryUserRepository[F[_]: Sync] extends UserRepository[F] {
 
   private val id = User.Id(UUID.fromString("967bbcca-9880-46b9-882c-267c04693d1c"))
   private val name = User.Name("whsv26")
@@ -24,9 +24,9 @@ class MemUserRepositoryAlgInterpreter[F[_]: Sync] extends UserRepositoryAlg[F] {
     }
 }
 
-object MemUserRepositoryAlgInterpreter {
-  def apply[F[_]: Sync]: Resource[F, MemUserRepositoryAlgInterpreter[F]] =
+object InMemoryUserRepository {
+  def apply[F[_]: Sync]: Resource[F, InMemoryUserRepository[F]] =
     Resource.suspend(Sync.Type.Delay) {
-      new MemUserRepositoryAlgInterpreter()
+      new InMemoryUserRepository()
     }
 }

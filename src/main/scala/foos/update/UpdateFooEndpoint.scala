@@ -12,14 +12,14 @@ import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.auto._
 import io.circe.refined._
 import io.scalaland.chimney.dsl.TransformerOps
-import org.whsv26.tapir.auth.TokenAlg
+import org.whsv26.tapir.auth.Tokens
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 
 class UpdateFooEndpoint[F[_]: Sync](
   foos: FooService[F],
-  tokens: TokenAlg[F]
+  tokens: Tokens[F]
 ) {
   lazy val route: SecuredServerRoute[F, (Foo.Id, UpdateFoo), UpdatedFoo] =
     UpdateFooEndpoint.route

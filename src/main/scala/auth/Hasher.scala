@@ -3,7 +3,7 @@ package auth
 
 import auth.User.{PasswordHash, PlainPassword}
 
-trait HasherAlg[F[_]] {
+trait Hasher[F[_]] {
   def hashPassword(pass: PlainPassword): F[PasswordHash]
   def verifyPassword(lhs: PlainPassword, rhs: PasswordHash): F[Boolean]
 }

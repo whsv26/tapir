@@ -1,7 +1,7 @@
 package org.whsv26.tapir
 package foos.delete
 
-import auth.TokenAlg
+import auth.Tokens
 import foos.Foo
 import util.http.security._
 
@@ -12,7 +12,7 @@ import sttp.tapir._
 
 class DeleteFooEndpoint[F[_]: Async](
   producer: DeleteFooProducer[F],
-  tokens: TokenAlg[F]
+  tokens: Tokens[F]
 ) {
   lazy val route: SecuredServerRoute[F, Foo.Id, Unit] =
     DeleteFooEndpoint.route

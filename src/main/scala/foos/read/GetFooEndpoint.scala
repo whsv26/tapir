@@ -10,7 +10,7 @@ import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.auto._
 import io.circe.refined._
 import io.scalaland.chimney.dsl.TransformerOps
-import org.whsv26.tapir.auth.TokenAlg
+import org.whsv26.tapir.auth.Tokens
 import org.whsv26.tapir.foos.{Foo, FooService}
 import org.whsv26.tapir.util.http.security._
 import sttp.tapir._
@@ -19,7 +19,7 @@ import sttp.tapir.json.circe.jsonBody
 
 class GetFooEndpoint[F[_]: Sync](
   fooService: FooService[F],
-  tokens: TokenAlg[F]
+  tokens: Tokens[F]
 ) {
   lazy val route: SecuredServerRoute[F, Foo.Id, FooView] =
     GetFooEndpoint.route

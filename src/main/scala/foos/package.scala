@@ -1,6 +1,6 @@
 package org.whsv26.tapir
 
-import auth.TokenAlg
+import auth.Tokens
 import foos.FooValidation.{FooAlreadyExists, FooDoesNotExist}
 import foos.create.{CreateFooEndpoint, CreateFooHandler}
 import foos.delete.{DeleteFooConsumer, DeleteFooEndpoint, DeleteFooHandler, DeleteFooProducer}
@@ -19,7 +19,7 @@ import izumi.distage.model.definition.ModuleDef
  * Commands, Queries and Events are module public contract
  */
 package object foos {
-  def foosModule[F[_]: TagK] = new ModuleDef {
+  def module[F[_]: TagK] = new ModuleDef {
     make[CreateFooEndpoint[F]]
     make[CreateFooHandler[F]]
     make[DeleteFooEndpoint[F]]
@@ -35,7 +35,7 @@ package object foos {
 
   def serverEndpoints[F[_]: Async](
     foos: FooService[F],
-    tokens: TokenAlg[F],
+    tokens: Tokens[F],
     mediator: Mediator[F],
     deleteFooProducer: DeleteFooProducer[F]
   ): ServerEndpoints[F] =
