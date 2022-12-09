@@ -10,7 +10,7 @@ trait JwtClockAlg[F[_]] {
 }
 
 object JwtClockAlg {
-  class SystemClock[F[_]: Sync] extends JwtClockAlg[F] {
+  class SystemClockImpl[F[_]: Sync] extends JwtClockAlg[F] {
     override def utc: F[Clock] =
       Sync[F].delay(Clock.systemUTC())
   }

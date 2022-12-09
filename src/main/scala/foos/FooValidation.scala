@@ -21,7 +21,7 @@ object FooValidation {
 
     override def doesNotExist(id: Foo.Id): EitherT[F, FooAlreadyExists, Unit] =
       EitherT {
-        foos.findById(id).map {
+        foos.find(id).map {
           case Some(_) => Left(FooAlreadyExists(id))
           case None => Right(())
         }
@@ -29,7 +29,7 @@ object FooValidation {
 
     override def exist(id: Foo.Id): EitherT[F, FooDoesNotExist, Unit] =
       EitherT.fromOptionF(
-        foos.findById(id),
+        foos.find(id),
         FooDoesNotExist(id)
       ).void
   }

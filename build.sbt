@@ -17,7 +17,6 @@ val refinedVersion = "0.9.28"
 val chimneyVersion = "0.6.1"
 val doobieVersion = "1.0.0-RC1"
 val shapelessVerson = "2.3.3"
-val macwireVerson = "2.5.8"
 
 lazy val root = (project in file("."))
   .settings(
@@ -80,8 +79,7 @@ libraryDependencies ++= Seq(
 
   "com.chuusai" %% "shapeless" % shapelessVerson,
 
-  "com.softwaremill.macwire" %% "macros" % macwireVerson % "provided",
-  "com.softwaremill.macwire" %% "util" % macwireVerson,
-  "com.softwaremill.macwire" %% "macrosautocats" % macwireVerson % "provided",
+  "org.typelevel" %% "mouse" % "1.2.1",
 
+  "io.7mind.izumi" %% "distage-core" % "1.1.0-M11"
 )

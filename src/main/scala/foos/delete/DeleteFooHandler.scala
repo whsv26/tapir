@@ -1,16 +1,16 @@
 package org.whsv26.tapir
 package foos.delete
 
-import foos.DeleteFooCommand
+import foos.{DeleteFooCommand, FooService}
 import util.bus.CommandHandler
-
 import cats.effect.kernel.MonadCancelThrow
 
-class AsyncDeleteFooHandler[F[_]: MonadCancelThrow](
-  producer: DeleteFooProducer[F],
+class DeleteFooHandler[F[_]: MonadCancelThrow](
+  fooService: FooService[F]
 ) extends CommandHandler[F, DeleteFooCommand] {
   override def handle = { command =>
-    producer.produce(command.id)
+    fooService
+      .delete(command.id)
+      .value
   }
 }
-

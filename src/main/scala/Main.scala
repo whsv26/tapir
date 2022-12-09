@@ -1,40 +1,41 @@
 package org.whsv26.tapir
 
-import auth.BCryptHasherAlgInterpreter.RoundsTag
 import auth._
-import config.Config.{AppConfig, DbConfig}
+import config.Config.{AppConfig, DbConfig, JwtConfig}
 import foos.create.CreateFooHandler
-import foos.delete.{DeleteFooConsumer, DeleteFooProducer}
-import foos.{FooRepository, FooService, FooValidation}
+import foos.delete.{DeleteFooConsumer, DeleteFooHandler, DeleteFooProducer}
+import foos.{FooRepository, FooService, FooValidation, foosModule}
 import util.bus.{Mediator, NotificationHandlerBase, RequestHandlerBase}
 import util.http.Http4sServer
 import util.http.security.ServerEndpoints
-import util.slick.SlickDatabaseFactory
 
 import cats.effect._
 import cats.effect.kernel.Async
 import cats.implicits._
-import com.softwaremill.macwire.autocats.autowire
-import com.softwaremill.tagging._
+import distage.{Activation, Injector, Lifecycle, Roots, Tag, TagK}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
+import doobie.util.transactor.Transactor
 import org.http4s.HttpRoutes
 import slick.jdbc.JdbcBackend
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
+import izumi.distage.model.definition.ModuleDef
+import org.whsv26.tapir.util.slick.SlickDatabaseFactory
 
 object Main extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
-    application.useForever
+    application.use(_ => IO.never)
 
   case class Handlers(
-    createFooHandler: CreateFooHandler[IO]
+    createFooHandler: CreateFooHandler[IO],
+    deleteFooHandler: DeleteFooHandler[IO],
   )
 
   case class Deps(
     config: AppConfig,
-    jwtClock: JwtClockAlg.SystemClock[IO],
+    jwtClock: JwtClockAlg.SystemClockImpl[IO],
     jwtToken: JwtTokenAlgInterpreter[IO],
     slickDatabaseFactory: JdbcBackend.DatabaseDef,
     transactor: HikariTransactor[IO],
@@ -49,29 +50,45 @@ object Main extends IOApp {
     authService: AuthService[IO],
   )
 
-  val config = AppConfig.read[IO]("config/app.conf")
+  def appModule[F[_]: Async: TagK] = new ModuleDef {
+    include(authModule[F])
+    include(foosModule[F])
 
-  private def application: Resource[IO, Unit] = {
-    autowire[Deps](
-      AppConfig.read[IO]("config/app.conf"),
-      config.map(_.db),
-      config.map(_.jwt),
-      SlickDatabaseFactory[IO] _,
-      mkTransactor _,
-      mkMediator _,
-      12.taggedWith[RoundsTag]
-    ).flatMap { deps =>
+    make[AppConfig].fromEffect(AppConfig.read[F]("config/app.conf"))
+    make[DbConfig].from((conf: AppConfig) => conf.db)
+    make[JwtConfig].from((conf: AppConfig) => conf.jwt)
 
-      val routes = http4sRoutes[IO](List(
-        foos.serverEndpoints(deps.fooService, deps.jwtToken, deps.deleteFooProducer, deps.mediator),
-        auth.serverEndpoints(deps.authService),
-      ).flatten)
+    make[JdbcBackend.DatabaseDef].fromResource(SlickDatabaseFactory[IO] _)
+    make[Transactor[F]].fromResource(mkTransactor[F] _)
+    make[Mediator[F]].from[Mediator.Impl[F]]
 
-      for {
-        _ <- DeleteFooConsumer.start(deps.fooService, deps.config)
-        _ <- Http4sServer.start(deps.config.server, routes)
-      } yield ()
-    }
+    make[Handlers]
+    make[Deps]
+  }
+
+  private def application: Lifecycle[IO, Unit] = {
+    val injector: Injector[IO] = Injector[IO]()
+
+    val plan = injector.plan(
+      appModule[IO],
+      Activation.empty,
+      Roots.target[Deps]
+    )
+
+    injector
+      .produce(plan)
+      .map(_.get[Deps])
+      .flatMap { deps =>
+        val routes = http4sRoutes[IO](List(
+          foos.serverEndpoints(deps.fooService, deps.jwtToken, deps.mediator, deps.deleteFooProducer),
+          auth.serverEndpoints(deps.authService),
+        ).flatten)
+
+        for {
+          _ <- Lifecycle.fromCats(DeleteFooConsumer.start(deps.fooService, deps.config))
+          _ <- Lifecycle.fromCats(Http4sServer.start(deps.config.server, routes))
+        } yield ()
+      }
   }
 
   private def http4sRoutes[F[_]: Async](
@@ -89,11 +106,11 @@ object Main extends IOApp {
     Http4sServerInterpreter[F].toRoutes(swaggerUiEndpoints)
   }
 
-  private def mkTransactor(conf: DbConfig): Resource[IO, HikariTransactor[IO]] =
+  private def mkTransactor[F[_]: Async](conf: DbConfig): Resource[F, Transactor[F]] =
     ExecutionContexts
-      .fixedThreadPool[IO](100)
+      .fixedThreadPool[F](100)
       .flatMap { connectionExecutionContext =>
-        HikariTransactor.newHikariTransactor[IO](
+        HikariTransactor.newHikariTransactor[F](
           driverClassName = "org.postgresql.Driver",
           url = conf.url.value,
           user = conf.user.value,
@@ -102,17 +119,17 @@ object Main extends IOApp {
         )
       }
 
-  private def mkMediator(handlers: Handlers): Mediator[IO] = {
+  private def mkMediator[F[_]: Async](handlers: Handlers): Mediator[F] = {
     val genericHandlers = shapeless.Generic[Handlers].to(handlers)
 
     val requestHandlers = genericHandlers
-      .unifySubtypes[RequestHandlerBase[IO]]
-      .filter[RequestHandlerBase[IO]]
+      .unifySubtypes[RequestHandlerBase[F]]
+      .filter[RequestHandlerBase[F]]
       .to[List]
 
     val notificationHandlers = genericHandlers
-      .unifySubtypes[NotificationHandlerBase[IO]]
-      .filter[NotificationHandlerBase[IO]]
+      .unifySubtypes[NotificationHandlerBase[F]]
+      .filter[NotificationHandlerBase[F]]
       .to[List]
 
     new Mediator.Impl(requestHandlers, notificationHandlers)

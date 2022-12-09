@@ -39,12 +39,10 @@ object Config {
   )
 
   object AppConfig {
-    def read[F[_]: Sync](path: String): Resource[F, AppConfig] =
-      Resource.eval {
-        Sync[F].delay(ConfigSource.resources(path))
-          .map(_.load[AppConfig].leftMap(ConfigError))
-          .rethrow
-      }
+    def read[F[_]: Sync](path: String): F[AppConfig] =
+      Sync[F].delay(ConfigSource.resources(path))
+        .map(_.load[AppConfig].leftMap(ConfigError))
+        .rethrow
   }
 
   private case class ConfigError(err: ConfigReaderFailures) extends Throwable {

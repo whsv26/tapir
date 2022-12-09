@@ -5,7 +5,6 @@ import foos.FooValidation.{FooAlreadyExists, FooDoesNotExist}
 
 import cats.MonadThrow
 import cats.data.EitherT
-import cats.effect.kernel.{Resource, Sync}
 
 final class FooService[F[_]: MonadThrow](
   foos: FooRepository[F],
@@ -31,5 +30,5 @@ final class FooService[F[_]: MonadThrow](
     } yield ()
 
   def findById(id: Foo.Id): F[Option[Foo]] =
-    foos.findById(id)
+    foos.find(id)
 }
