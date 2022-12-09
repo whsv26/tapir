@@ -1,8 +1,8 @@
 package org.whsv26.tapir
-package auth
+package modules.auth
 
-import auth.AuthService._
-import auth.User.{PasswordHash, PlainPassword}
+import AuthService._
+import User.{PasswordHash, PlainPassword}
 
 import cats.Monad
 import cats.data.{EitherT, OptionT}

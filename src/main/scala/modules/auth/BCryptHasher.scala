@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package auth
+package modules.auth
 
-import auth.User.{PasswordHash, PlainPassword}
+import User.{PasswordHash, PlainPassword}
 
 import cats.effect.kernel.Sync
 import cats.implicits._

@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package auth
+package modules.auth
 
-import auth.CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
+import CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotFoundApiError}
 import AuthService.{InvalidPassword, UserNotFound}
 import User.PlainPassword
 import util.http.error.{ApiError, ApiErrorLike, EntityNotFound}

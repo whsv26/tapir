@@ -1,7 +1,6 @@
 package org.whsv26.tapir
 package modules.foos.create
 
-import auth.Tokens
 import modules.foos.{CreateFooCommand, Foo}
 import modules.foos.FooValidation.FooAlreadyExists
 import modules.foos.create.CreateFooEndpoint._
@@ -15,6 +14,7 @@ import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.auto._
 import io.circe.refined._
 import io.scalaland.chimney.dsl.TransformerOps
+import org.whsv26.tapir.modules.auth.Tokens
 import sttp.tapir._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody

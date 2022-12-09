@@ -1,4 +1,5 @@
 package org.whsv26.tapir
+package modules
 
 import util.bus.{NotificationHandlerBase, RequestHandlerBase}
 import util.http.security.Endpoints

@@ -1,5 +1,5 @@
 package org.whsv26.tapir
-package auth
+package modules.auth
 
 import cats.effect.kernel.Sync
 import cats.implicits._

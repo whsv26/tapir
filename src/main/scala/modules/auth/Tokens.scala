@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package auth
+package modules.auth
 
-import auth.Tokens._
+import Tokens._
 
 import cats.data.EitherT
 

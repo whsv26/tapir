@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package auth
+package modules.auth
 
-import auth.User.PasswordHash
+import User.PasswordHash
 
 import io.estatico.newtype.macros.newtype
 import io.circe.{Decoder, Encoder}

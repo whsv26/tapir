@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package auth
+package modules.auth
 
-import auth.User.{PasswordHash, PlainPassword}
+import org.whsv26.tapir.modules.auth.User.{PasswordHash, PlainPassword}
 
 trait Hasher[F[_]] {
   def hashPassword(pass: PlainPassword): F[PasswordHash]

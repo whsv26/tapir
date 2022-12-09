@@ -1,7 +1,7 @@
 package org.whsv26.tapir
-package auth
+package modules.auth
 
-import auth.JwtTokens.UnableToDecodeJwtPrivateKey
+import JwtTokens.UnableToDecodeJwtPrivateKey
 import config.Config.JwtConfig
 import Tokens.TokenVerificationError
 

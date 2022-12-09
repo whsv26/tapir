@@ -10,7 +10,7 @@ import eu.timepit.refined.types.numeric.NonNegInt
 import io.circe.generic.auto._
 import io.circe.refined._
 import io.scalaland.chimney.dsl.TransformerOps
-import org.whsv26.tapir.auth.Tokens
+import org.whsv26.tapir.modules.auth.Tokens
 import org.whsv26.tapir.modules.foos.{Foo, FooService}
 import org.whsv26.tapir.util.http.security._
 import sttp.tapir._
