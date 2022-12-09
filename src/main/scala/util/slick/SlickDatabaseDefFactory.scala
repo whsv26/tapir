@@ -6,7 +6,7 @@ import config.Config.DbConfig
 import cats.effect.{Resource, Sync}
 import slick.jdbc.JdbcBackend.{Database, DatabaseDef}
 
-object SlickDatabaseFactory {
+object SlickDatabaseDefFactory {
   def apply[F[_]: Sync](conf: DbConfig): Resource[F, DatabaseDef] =
     Resource.fromAutoCloseable {
       Sync[F].delay(Database.forDriver(

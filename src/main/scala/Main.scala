@@ -1,130 +1,54 @@
 package org.whsv26.tapir
 
-import auth._
-import config.Config.{AppConfig, DbConfig, JwtConfig}
-import foos.create.CreateFooHandler
-import foos.delete.{DeleteFooConsumer, DeleteFooHandler, DeleteFooProducer}
-import foos.{FooRepository, FooService, FooValidation}
-import util.bus.{Mediator, NotificationHandlerBase, RequestHandlerBase}
+import config.Config.{AppConfig, DbConfig, JwtConfig, ServerConfig}
+import foos.delete.DeleteFooConsumer
+import util.bus.Mediator
+import util.doobie.DoobieTransactorFactory
 import util.http.Http4sServer
-import util.http.security.ServerEndpoints
-import util.slick.SlickDatabaseFactory
+import util.slick.SlickDatabaseDefFactory
 
 import cats.effect._
 import cats.effect.kernel.Async
-import cats.implicits._
 import distage._
-import doobie.hikari.HikariTransactor
-import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
 import izumi.distage.model.definition.ModuleDef
-import org.http4s.HttpRoutes
-import slick.jdbc.JdbcBackend
-import sttp.tapir.server.http4s.Http4sServerInterpreter
-import sttp.tapir.swagger.bundle.SwaggerInterpreter
+import org.http4s.server.Server
+import slick.jdbc.JdbcBackend.DatabaseDef
 
 object Main extends IOApp {
+  case class Application(
+    deleteFooConsumer: DeleteFooConsumer[IO],
+  )
 
   override def run(args: List[String]): IO[ExitCode] =
-    application.use(_ => IO.never)
+    application.use { app =>
+      for {
+        _ <- app.deleteFooConsumer.start
+        _ <- IO.never[Nothing]
+      } yield ExitCode.Success
+    }
 
-  case class Handlers(
-    createFooHandler: CreateFooHandler[IO],
-    deleteFooHandler: DeleteFooHandler[IO],
-  )
+  private def application: Lifecycle[IO, Application] = {
+    val injector = Injector[IO]()
+    val plan = injector.plan(appModule[IO], Activation.empty, Roots.target[Application])
 
-  case class Deps(
-    config: AppConfig,
-    jwtClock: JwtClock.SystemImpl[IO],
-    jwtToken: JwtTokens[IO],
-    slickDatabaseFactory: JdbcBackend.DatabaseDef,
-    transactor: HikariTransactor[IO],
-    handlers: Handlers,
-    mediator: Mediator[IO],
-    userRepository: InMemoryUserRepository[IO],
-    hasher: BCryptHasher[IO],
-    fooRepository: FooRepository.SlickImpl[IO],
-    fooValidation: FooValidation.Impl[IO],
-    fooService: FooService[IO],
-    deleteFooProducer: DeleteFooProducer[IO],
-    authService: AuthService[IO],
-  )
+    injector
+      .produce(plan)
+      .map(_.get[Application])
+  }
 
-  def appModule[F[_]: Async: TagK] = new ModuleDef {
+  private def appModule[F[_] : Async : TagK] = new ModuleDef {
     include(auth.module[F])
     include(foos.module[F])
 
     make[AppConfig].fromEffect(AppConfig.read[F]("config/app.conf"))
     make[DbConfig].from((conf: AppConfig) => conf.db)
     make[JwtConfig].from((conf: AppConfig) => conf.jwt)
-    make[JdbcBackend.DatabaseDef].fromResource(SlickDatabaseFactory[IO] _)
-    make[Transactor[F]].fromResource(mkTransactor[F] _)
+    make[ServerConfig].from((conf: AppConfig) => conf.server)
+    make[DatabaseDef].fromResource(SlickDatabaseDefFactory[F] _)
+    make[Transactor[F]].fromResource(DoobieTransactorFactory[F] _)
     make[Mediator[F]].from[Mediator.Impl[F]]
-    make[Handlers]
-    make[Deps]
-  }
-
-  private def application: Lifecycle[IO, Unit] = {
-    val injector = Injector[IO]()
-    val plan = injector.plan(appModule[IO], Activation.empty, Roots.target[Deps])
-
-    injector
-      .produce(plan)
-      .map(_.get[Deps])
-      .flatMap { deps =>
-        val routes = http4sRoutes[IO](List(
-          foos.serverEndpoints(deps.fooService, deps.jwtToken, deps.mediator, deps.deleteFooProducer),
-          auth.serverEndpoints(deps.authService),
-        ).flatten)
-
-        for {
-          _ <- Lifecycle.fromCats(DeleteFooConsumer.start(deps.fooService, deps.config))
-          _ <- Lifecycle.fromCats(Http4sServer.start(deps.config.server, routes))
-        } yield ()
-      }
-  }
-
-  private def http4sRoutes[F[_]: Async](
-    serverEndpoints: ServerEndpoints[F]
-  ): HttpRoutes[F] = {
-    val swaggerUiEndpoints =
-      SwaggerInterpreter()
-        .fromServerEndpoints[F](
-          endpoints = serverEndpoints,
-          title = "Learning tapir",
-          version = "1.0.0"
-        )
-
-    Http4sServerInterpreter[F].toRoutes(serverEndpoints) <+>
-    Http4sServerInterpreter[F].toRoutes(swaggerUiEndpoints)
-  }
-
-  private def mkTransactor[F[_]: Async](conf: DbConfig): Resource[F, Transactor[F]] =
-    ExecutionContexts
-      .fixedThreadPool[F](100)
-      .flatMap { connectionExecutionContext =>
-        HikariTransactor.newHikariTransactor[F](
-          driverClassName = "org.postgresql.Driver",
-          url = conf.url.value,
-          user = conf.user.value,
-          pass = conf.password,
-          connectEC = connectionExecutionContext
-        )
-      }
-
-  private def mkMediator[F[_]: Async](handlers: Handlers): Mediator[F] = {
-    val genericHandlers = shapeless.Generic[Handlers].to(handlers)
-
-    val requestHandlers = genericHandlers
-      .unifySubtypes[RequestHandlerBase[F]]
-      .filter[RequestHandlerBase[F]]
-      .to[List]
-
-    val notificationHandlers = genericHandlers
-      .unifySubtypes[NotificationHandlerBase[F]]
-      .filter[NotificationHandlerBase[F]]
-      .to[List]
-
-    new Mediator.Impl(requestHandlers, notificationHandlers)
+    make[Server].fromResource(Http4sServer.make[F] _)
+    make[Application]
   }
 }

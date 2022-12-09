@@ -45,8 +45,8 @@ object MediatorTestApp extends IOApp.Simple {
       topic <- Topic[IO, Notification]
 
       mediator = new Mediator.Impl[IO](
-        List(new MyHandler1, new MyHandler2),
-        List(new SomethingHappenedHandler1, new SomethingHappenedHandler2, new SomethingElseHappenedHandler),
+        Set(new MyHandler1, new MyHandler2),
+        Set(new SomethingHappenedHandler1, new SomethingHappenedHandler2, new SomethingElseHappenedHandler),
       )
 
       _ <- List(mediator.send(MyQuery2(1)), mediator.send(MyQuery1(2)).map(_.toString))

@@ -3,6 +3,7 @@ package foos.delete
 
 import config.Config.AppConfig
 
+import cats.effect.implicits.genSpawnOps
 import cats.effect.kernel.{Async, Resource, Spawn}
 import cats.implicits._
 import fs2.kafka._
@@ -41,17 +42,6 @@ class DeleteFooConsumer[F[_]: Async](
       .through(commitBatchWithin(500, 10.seconds))
       .compile
       .drain
-}
-
-object DeleteFooConsumer {
-  def start[F[_]: Async: Spawn](
-    foos: FooService[F],
-    conf: AppConfig
-  ): Resource[F, Unit] =
-    Resource.eval {
-      Spawn[F].start {
-        new DeleteFooConsumer[F](foos, conf).start
-      }
-    }.void
-
+      .start
+      .void
 }

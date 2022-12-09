@@ -1,18 +1,17 @@
 package org.whsv26.tapir
 
-import auth.Tokens
 import foos.FooValidation.{FooAlreadyExists, FooDoesNotExist}
 import foos.create.{CreateFooEndpoint, CreateFooHandler}
 import foos.delete.{DeleteFooConsumer, DeleteFooEndpoint, DeleteFooHandler, DeleteFooProducer}
 import foos.read.GetFooEndpoint
 import foos.update.UpdateFooEndpoint
-import util.bus.{Command, Mediator}
-import util.http.security.{Endpoints, ServerEndpoints}
+import util.bus.{Command, NotificationHandlerBase, RequestHandlerBase}
+import util.http.security.Endpoints
 
-import cats.effect.kernel.Async
-import distage.{Tag, TagK}
+import distage.TagK
 import eu.timepit.refined.types.numeric.NonNegInt
 import izumi.distage.model.definition.ModuleDef
+import sttp.tapir.server.ServerEndpoint
 
 /**
  * Transaction script for simple CRUD modules
@@ -31,23 +30,24 @@ package object foos {
     make[FooService[F]]
     make[FooRepository[F]].from[FooRepository.SlickImpl[F]]
     make[FooValidation[F]].from[FooValidation.Impl[F]]
-  }
 
-  def serverEndpoints[F[_]: Async](
-    foos: FooService[F],
-    tokens: Tokens[F],
-    mediator: Mediator[F],
-    deleteFooProducer: DeleteFooProducer[F]
-  ): ServerEndpoints[F] =
-    List(
-      new CreateFooEndpoint(mediator, tokens).route,
-      new GetFooEndpoint(foos, tokens).route,
-      new DeleteFooEndpoint(deleteFooProducer, tokens).route,
-    )
+    many[ServerEndpoint[Any, F]]
+      .add((e: CreateFooEndpoint[F]) => e.route)
+      .add((e: DeleteFooEndpoint[F]) => e.route)
+      .add((e: UpdateFooEndpoint[F]) => e.route)
+      .add((e: GetFooEndpoint[F]) => e.route)
+
+    many[RequestHandlerBase[F]]
+      .add((h: CreateFooHandler[F]) => h)
+      .add((h: DeleteFooHandler[F]) => h)
+
+    many[NotificationHandlerBase[F]]
+  }
 
   val endpoints: Endpoints = List(
     CreateFooEndpoint.route,
     GetFooEndpoint.route,
+    UpdateFooEndpoint.route,
     DeleteFooEndpoint.route,
   )
 

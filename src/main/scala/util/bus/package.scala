@@ -78,8 +78,8 @@ package object bus {
 
   object Mediator {
     class Impl[F[_]: Async](
-      requestHandlers: List[RequestHandlerBase[F]],
-      notificationHandlers: List[NotificationHandlerBase[F]],
+      requestHandlers: Set[RequestHandlerBase[F]],
+      notificationHandlers: Set[NotificationHandlerBase[F]],
     ) extends Mediator[F] {
 
       private val requestHandlersMap = requestHandlers.map {
@@ -96,6 +96,7 @@ package object bus {
 
       override def publish(notification: Notification): F[Unit] =
         notificationHandlersMap(notification.getClass)
+          .toList
           .traverse { handler =>
             handler
               .asInstanceOf[NotificationHandler[F, Notification]]

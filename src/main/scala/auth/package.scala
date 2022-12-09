@@ -1,10 +1,11 @@
 package org.whsv26.tapir
 
-import util.http.security.{Endpoints, ServerEndpoints}
+import util.bus.{NotificationHandlerBase, RequestHandlerBase}
+import util.http.security.Endpoints
 
-import cats.effect.kernel.Sync
-import distage.{Tag, TagK}
+import distage.TagK
 import izumi.distage.model.definition.ModuleDef
+import sttp.tapir.server.ServerEndpoint
 
 package object auth {
   def module[F[_]: TagK] = new ModuleDef {
@@ -14,14 +15,13 @@ package object auth {
     make[JwtClock[F]].from[JwtClock.SystemImpl[F]]
     make[Tokens[F]].from[JwtTokens[F]]
     make[UserRepository[F]].from[InMemoryUserRepository[F]]
-  }
 
-  def serverEndpoints[F[_]: Sync](
-    auth: AuthService[F]
-  ): ServerEndpoints[F] =
-    List(
-      new CreateJwtTokenEndpoint(auth).route,
-    )
+    many[ServerEndpoint[Any, F]]
+      .add((e: CreateJwtTokenEndpoint[F]) => e.route)
+
+    many[RequestHandlerBase[F]]
+    many[NotificationHandlerBase[F]]
+  }
 
   val endpoints: Endpoints = List(
     CreateJwtTokenEndpoint.route,
