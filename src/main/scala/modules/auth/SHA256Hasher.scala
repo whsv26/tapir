@@ -15,5 +15,4 @@ class SHA256Hasher[F[_]: Sync] extends Hasher[F] {
   override def verifyPassword(password: PlainPassword, hash: PasswordHash): F[Boolean] =
     hashPassword(password)
       .map(_ == hash)
-
 }

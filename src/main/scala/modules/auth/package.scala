@@ -16,7 +16,7 @@ package object auth {
     make[AuthService[F]]
     make[Tokens[F]].from[JwtTokens[F]]
     make[JwtClock[F]].from[JwtClock.SystemImpl[F]]
-    make[UserRepository[F]].from[InMemoryUserRepository[F]]
+    make[UserRepository[F]].from[UserRepository.InMemoryImpl[F]]
     make[CreateJwtTokenEndpoint[F]]
 
     many[ServerEndpoint[Any, F]]

@@ -46,6 +46,7 @@ object CreateJwtTokenEndpoint {
   )
 
   private object UserNotFoundApiError extends EntityNotFound("User", "name")
+
   private object InvalidPasswordApiError extends ApiErrorLike {
     val message: String = "Invalid password"
     val status: StatusCode = StatusCode.BadRequest

@@ -1,15 +1,14 @@
 package org.whsv26.tapir
 package modules.auth
 
-import User.PasswordHash
+import modules.auth.User.PasswordHash
+import util.tapir._
 
-import io.estatico.newtype.macros.newtype
 import io.circe.{Decoder, Encoder}
-import sttp.tapir.{Codec, CodecFormat, Schema}
-
+import io.estatico.newtype.macros.newtype
+import sttp.tapir.Schema
 
 import java.util.UUID
-import util.tapir._
 
 case class User(
   id: User.Id,
