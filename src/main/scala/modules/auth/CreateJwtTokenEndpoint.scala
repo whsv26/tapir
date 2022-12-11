@@ -5,7 +5,7 @@ import CreateJwtTokenEndpoint.{CreateJwtToken, InvalidPasswordApiError, UserNotF
 import AuthService.{InvalidPassword, UserNotFound}
 import User.PlainPassword
 import util.http.error.{ApiError, ApiErrorLike, EntityNotFound}
-import util.http.security.{PublicRoute, PublicServerRoute}
+import util.http.security.{PublicRoute, PublicServerRoute, publicEndpoint}
 
 import cats.effect.kernel.Sync
 import io.circe.generic.auto._
@@ -29,13 +29,12 @@ class CreateJwtTokenEndpoint[F[_]: Sync](auth: AuthService[F]) {
 
 object CreateJwtTokenEndpoint {
   lazy val route: PublicRoute[CreateJwtToken, User.Token] =
-    endpoint
+    publicEndpoint
       .summary("Sign in")
-      .in("api" / "v1" / "token")
+      .in("token")
       .post
       .in(jsonBody[CreateJwtToken])
       .out(jsonBody[User.Token])
-      .errorOut((statusCode and stringBody).mapTo[ApiError])
       .errorOutVariants(
         oneOfVariant(UserNotFoundApiError.out.mapTo[ApiError]),
         oneOfVariant(InvalidPasswordApiError.out.mapTo[ApiError]),

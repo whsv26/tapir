@@ -23,14 +23,14 @@ package object error {
   trait EntityApiError extends ApiErrorLike {
     def identity: String
     def name: String
-    def action: String
+    def cause: String
     def status: StatusCode
 
     final val message: String =
       format(s"{$identity}")
 
     protected def format(identity: String) =
-      s"$name $identity $action"
+      s"$name $identity $cause"
 
     final def apply(id: String): ApiError =
       ApiError(status, format(id))
@@ -41,7 +41,7 @@ package object error {
     val identity: String = "id"
   ) extends EntityApiError {
     val status: StatusCode = StatusCode.NotFound
-    val action = "not found"
+    val cause = "not found"
   }
 
   class EntityAlreadyExists(
@@ -49,6 +49,6 @@ package object error {
     val identity: String = "id"
   ) extends EntityApiError {
     val status: StatusCode = StatusCode.Conflict
-    val action = "already exists"
+    val cause = "already exists"
   }
 }

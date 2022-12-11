@@ -1,23 +1,20 @@
 package org.whsv26.tapir
 package config
 
-import cats.syntax.monadError._
-import cats.syntax.functor._
+import cats.effect.Sync
 import cats.syntax.bifunctor._
-import cats.effect.{Resource, Sync}
-import eu.timepit.refined.W
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.numeric.Greater
+import cats.syntax.functor._
+import cats.syntax.monadError._
+import eu.timepit.refined.pureconfig._
 import eu.timepit.refined.types.net.PortNumber
 import eu.timepit.refined.types.string.NonEmptyString
 import pureconfig.ConfigSource
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.generic.auto._
-import eu.timepit.refined.pureconfig._
+
+import scala.concurrent.duration.FiniteDuration
 
 object Config {
-  type Seconds = Int Refined Greater[W.`60`.T]
-
   final case class ServerConfig(host: NonEmptyString, port: PortNumber)
 
   final case class KafkaConfig(bootstrapServers: NonEmptyString)
@@ -28,7 +25,7 @@ object Config {
     privateKey: String,
     publicKey: String,
     issuer: String,
-    expiry: Seconds,
+    expiry: FiniteDuration,
   )
 
   final case class AppConfig(

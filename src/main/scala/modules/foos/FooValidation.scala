@@ -9,7 +9,7 @@ import cats.syntax.functor._
 
 trait FooValidation[F[_]] {
   def doesNotExist(id: Foo.Id): EitherT[F, FooAlreadyExists, Unit]
-  def exist(id: Foo.Id): EitherT[F, FooDoesNotExist, Unit]
+  def exists(id: Foo.Id): EitherT[F, FooDoesNotExist, Unit]
 }
 
 object FooValidation {
@@ -27,7 +27,7 @@ object FooValidation {
         }
       }
 
-    override def exist(id: Foo.Id): EitherT[F, FooDoesNotExist, Unit] =
+    override def exists(id: Foo.Id): EitherT[F, FooDoesNotExist, Unit] =
       EitherT.fromOptionF(
         foos.find(id),
         FooDoesNotExist(id)

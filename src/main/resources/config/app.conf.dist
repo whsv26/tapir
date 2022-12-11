@@ -15,7 +15,7 @@ kafka {
 
 jwt {
     issuer = "whsv26"
-    expiry = 604800
+    expiry = "7 days"
     public-key = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEeJFL84/g5dGcXOxY9wPcTHnBtXPgwXx9LKVg57MibsC/VuM2zZvI9jMoG1EVgDQ4DsD+bVzQ3DO8kEiTxjHrhw=="
     private-key = "MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgAQhfPgfhfpSRDmHpMdNTxS1mdtC1N5YRlsZX4VLq9QigCgYIKoZIzj0DAQehRANCAAR4kUvzj+Dl0Zxc7Fj3A9xMecG1c+DBfH0spWDnsyJuwL9W4zbNm8j2MygbURWANDgOwP5tXNDcM7yQSJPGMeuH"
 }

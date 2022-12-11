@@ -8,12 +8,12 @@ import tsec.common._
 import tsec.hashing.jca.SHA256
 
 class SHA256Hasher[F[_]: Sync] extends Hasher[F] {
-  override def hashPassword(pass: PlainPassword): F[PasswordHash] =
-    SHA256.hash[F](pass.value.utf8Bytes)
+  override def hashPassword(password: PlainPassword): F[PasswordHash] =
+    SHA256.hash[F](password.value.utf8Bytes)
       .map(bytes => PasswordHash(bytes.toB64String))
 
-  override def verifyPassword(lhs: PlainPassword, rhs: PasswordHash): F[Boolean] =
-    hashPassword(lhs)
-      .map(_ == rhs)
+  override def verifyPassword(password: PlainPassword, hash: PasswordHash): F[Boolean] =
+    hashPassword(password)
+      .map(_ == hash)
 
 }

@@ -10,12 +10,14 @@ import sttp.tapir.server.ServerEndpoint
 
 package object auth {
   def module[F[_]: TagK] = new ModuleDef {
-    make[AuthService[F]]
-    make[CreateJwtTokenEndpoint[F]]
+    make[Int].named("rounds").from(12)
     make[Hasher[F]].from[BCryptHasher[F]]
-    make[JwtClock[F]].from[JwtClock.SystemImpl[F]]
+
+    make[AuthService[F]]
     make[Tokens[F]].from[JwtTokens[F]]
+    make[JwtClock[F]].from[JwtClock.SystemImpl[F]]
     make[UserRepository[F]].from[InMemoryUserRepository[F]]
+    make[CreateJwtTokenEndpoint[F]]
 
     many[ServerEndpoint[Any, F]]
       .add((e: CreateJwtTokenEndpoint[F]) => e.route)

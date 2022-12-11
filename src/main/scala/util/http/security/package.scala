@@ -18,9 +18,19 @@ package object security {
   type ServerEndpoints[F[_]] = List[ServerEndpoint[Any, F]]
   type Endpoints = List[Endpoint[_, _, _, _, _]]
 
+  val publicEndpoint: Endpoint[Unit, Unit, ApiError, Unit, Any] =
+    endpoint
+      .in("api")
+      .errorOut(
+        statusCode
+          .and(stringBody)
+          .mapTo[ApiError]
+      )
+
   val securedEndpoint: Endpoint[User.Token, Unit, ApiError, Unit, Any] =
     endpoint
       .securityIn(auth.bearer[User.Token]())
+      .in("api")
       .errorOut(
         statusCode
           .description(StatusCode.Unauthorized, "Unable to verify bearer token")

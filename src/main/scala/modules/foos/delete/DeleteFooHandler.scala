@@ -6,10 +6,10 @@ import util.bus.CommandHandler
 import cats.effect.kernel.MonadCancelThrow
 
 class DeleteFooHandler[F[_]: MonadCancelThrow](
-  fooService: FooService[F]
+  foos: FooService[F]
 ) extends CommandHandler[F, DeleteFooCommand] {
   override def handle = { command =>
-    fooService
+    foos
       .delete(command.id)
       .value
   }

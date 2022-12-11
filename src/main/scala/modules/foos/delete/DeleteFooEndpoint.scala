@@ -1,13 +1,13 @@
 package org.whsv26.tapir
 package modules.foos.delete
 
+import modules.auth.Tokens
 import modules.foos.Foo
+import modules.foos.Foo.Id
 import util.http.security._
 
 import cats.effect.kernel.Async
 import cats.implicits._
-import org.whsv26.tapir.modules.auth.Tokens
-import org.whsv26.tapir.modules.foos.Foo.Id
 import sttp.model.StatusCode
 import sttp.tapir._
 
@@ -30,6 +30,6 @@ object DeleteFooEndpoint {
     securedEndpoint
       .summary("Delete foo")
       .delete
-      .in("api" / "v1" / "foos" / path[Foo.Id]("ID"))
+      .in("foos" / path[Foo.Id]("ID"))
       .out(statusCode(StatusCode.Accepted))
 }

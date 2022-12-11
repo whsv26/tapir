@@ -9,6 +9,7 @@ import sttp.tapir.{Codec, CodecFormat, Schema}
 
 
 import java.util.UUID
+import util.tapir._
 
 case class User(
   id: User.Id,
@@ -31,7 +32,6 @@ object User {
     implicit val decoder: Decoder[Token] = deriving
     implicit val encoder: Encoder[Token] = deriving
     implicit val schema: Schema[Token] = deriving
-    implicit val codec: Codec[String, Token, CodecFormat.TextPlain] =
-      Codec.string.map[Token](Token(_))(_.value)
+    implicit val codec: ParamCodec[Token] = newTypeParamCodec[Token, String]
   }
 }

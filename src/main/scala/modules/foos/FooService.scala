@@ -19,13 +19,13 @@ final class FooService[F[_]: MonadThrow](
 
   def update(foo: Foo): EitherT[F, FooDoesNotExist, Foo] =
     for {
-      _ <- validation.exist(foo.id)
+      _ <- validation.exists(foo.id)
       _ <- EitherT.liftF(foos.update(foo))
     } yield foo
 
   def delete(id: Foo.Id): EitherT[F, FooDoesNotExist, Unit] =
     for {
-      _ <- validation.exist(id)
+      _ <- validation.exists(id)
       _ <- EitherT.liftF(foos.delete(id))
     } yield ()
 

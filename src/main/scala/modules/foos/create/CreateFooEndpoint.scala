@@ -44,16 +44,16 @@ object CreateFooEndpoint {
     securedEndpoint
       .summary("Create new foo")
       .post
-      .in("api" / "v1" / "foos")
+      .in("foos")
       .in(jsonBody[Request])
       .out(jsonBody[Response])
       .errorOutVariants(
         oneOfVariant(AlreadyExistsApiError.out.mapTo[ApiError]),
       )
 
-  private[foos] case class Request(a: NonNegInt, b: Boolean)
+  private[create] case class Request(a: NonNegInt, b: Boolean)
 
-  private[foos] case class Response(id: Foo.Id, a: NonNegInt, b: Boolean)
+  private[create] case class Response(id: Foo.Id, a: NonNegInt, b: Boolean)
 
   private object AlreadyExistsApiError extends EntityAlreadyExists("Foo")
 }

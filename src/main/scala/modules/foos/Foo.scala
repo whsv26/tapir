@@ -9,6 +9,7 @@ import io.estatico.newtype.macros.newtype
 import sttp.tapir.{Codec, CodecFormat, Schema}
 import doobie.util.Read
 import util.doobie._
+import util.tapir._
 
 import java.util.UUID
 
@@ -31,8 +32,7 @@ object Foo {
     implicit val decoder: Decoder[Id] = deriving
     implicit val encoder: Encoder[Id] = deriving
     implicit val schema: Schema[Id] = deriving
-    implicit val codec: Codec[String, Id, CodecFormat.TextPlain] =
-      Codec.uuid.map[Id](Id(_))(_.value)
+    implicit val codec: ParamCodec[Id] = newTypeParamCodec[Id, UUID]
   }
 }
 
