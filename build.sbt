@@ -16,7 +16,8 @@ val newTypeVersion = "0.4.4"
 val refinedVersion = "0.10.1"
 val chimneyVersion = "0.6.2"
 val doobieVersion = "1.0.0-RC1"
-val shapelessVerson = "2.3.10"
+val mouseVersion = "1.2.1"
+val distageVersion = "1.1.0-M11"
 
 lazy val root = (project in file("."))
   .settings(
@@ -77,9 +78,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-hikari" % doobieVersion,
   "org.tpolecat" %% "doobie-postgres" % doobieVersion,
 
-  "com.chuusai" %% "shapeless" % shapelessVerson,
+  "org.typelevel" %% "mouse" % mouseVersion,
 
-  "org.typelevel" %% "mouse" % "1.2.1",
-
-  "io.7mind.izumi" %% "distage-core" % "1.1.0-M11"
+  "io.7mind.izumi" %% "distage-core" % distageVersion
 )

@@ -32,9 +32,7 @@ package object bus {
 
   trait NotificationHandlerBase[F[_]] {
     type In <: Notification
-
     implicit def tag: ClassTag[In]
-
     def handle: In => F[Unit]
   }
 
