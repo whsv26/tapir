@@ -15,6 +15,7 @@ import tsec.signature.jca.{SHA256withECDSA, SigKeyPair}
 import java.security.{PrivateKey, PublicKey}
 import java.util.{Base64, UUID}
 
+// TODO: make it actual test
 object JwtTestApp extends IOApp.Simple {
   private lazy val conf: AppConfig = ConfigSource
     .resources("config/app.conf")

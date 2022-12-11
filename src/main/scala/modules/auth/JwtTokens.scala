@@ -1,12 +1,12 @@
 package org.whsv26.tapir
 package modules.auth
 
-import JwtTokens.UnableToDecodeJwtPrivateKey
 import config.Config.JwtConfig
-import Tokens.TokenVerificationError
+import modules.auth.JwtTokens.UnableToDecodeJwtPrivateKey
+import modules.auth.Tokens.TokenVerificationError
+import util.time.Clock
 
 import cats.data.EitherT
-import cats.effect.Resource
 import cats.effect.kernel.Sync
 import cats.implicits._
 import tsec.common._
@@ -20,7 +20,7 @@ import java.util.UUID
 // TODO review error handling
 class JwtTokens[F[_]: Sync](
   conf: JwtConfig,
-  clockAlg: JwtClock[F],
+  clock: Clock[F],
 ) extends Tokens[F] {
 
   override def verifyToken(token: User.Token): EitherT[F, TokenVerificationError, User.Id] = {
@@ -53,8 +53,7 @@ class JwtTokens[F[_]: Sync](
 
   private def buildClaims(id: User.Id): F[JWTClaims] =
     for {
-      clock <- clockAlg.utc
-      issuedAt <- Sync[F].delay(clock.instant())
+      issuedAt <- clock.now
       expiredAt = issuedAt.plus(conf.expiry.toSeconds, ChronoUnit.SECONDS)
     } yield JWTClaims()
       .withIssuer(conf.issuer)

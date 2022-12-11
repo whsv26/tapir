@@ -8,12 +8,13 @@ import util.doobie.DoobieTransactorFactory
 import util.http.Http4sServerFactory
 import util.slick.SlickDatabaseDefFactory
 
-import cats.effect._
+import cats.effect.{ExitCode, IO, IOApp}
 import cats.effect.kernel.Async
 import distage._
 import doobie.util.transactor.Transactor
 import izumi.distage.model.definition.ModuleDef
 import org.http4s.server.Server
+import org.whsv26.tapir.util.time.Clock
 import slick.jdbc.JdbcBackend.DatabaseDef
 
 object Main extends IOApp {
@@ -43,6 +44,7 @@ object Main extends IOApp {
     include(foos.module[F])
 
     make[AppConfig].fromEffect(AppConfig.read[F]("config/app.conf"))
+    make[Clock[F]].from[Clock.SystemImpl[F]]
     make[DbConfig].from((conf: AppConfig) => conf.db)
     make[JwtConfig].from((conf: AppConfig) => conf.jwt)
     make[ServerConfig].from((conf: AppConfig) => conf.server)

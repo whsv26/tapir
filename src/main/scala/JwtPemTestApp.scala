@@ -13,6 +13,7 @@ import java.security.{Key, PrivateKey, PublicKey}
 import java.util.UUID
 
 /**
+ * TODO: make it actual test
  * Verify JWT signature via [[https://jwt.io/]]
  */
 object JwtPemTestApp extends IOApp.Simple {
