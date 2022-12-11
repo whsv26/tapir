@@ -11,7 +11,7 @@ import sttp.tapir.server.ServerEndpoint
 package object auth {
   def module[F[_]: TagK] = new ModuleDef {
     make[Int].named("rounds").from(12)
-    make[Hasher[F]].from[BCryptHasher[F]]
+    make[Hasher[F]].from[Hasher.BCryptImpl[F]]
 
     make[AuthService[F]]
     make[Tokens[F]].from[JwtTokens[F]]
