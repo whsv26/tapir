@@ -2,8 +2,8 @@ package org.whsv26.tapir
 package modules.auth
 
 import config.Config.JwtConfig
-import modules.auth.JwtTokens.UnableToDecodeJwtPrivateKey
-import modules.auth.Tokens.TokenVerificationError
+import modules.auth.JwtTokens.{UnableToDecodeJwtPrivateKey, UnableToDecodeJwtPublicKey}
+import modules.auth.Tokens.UnableToVerifyToken
 import util.time.Clock
 
 import cats.data.EitherT
@@ -12,44 +12,46 @@ import cats.implicits._
 import tsec.common._
 import tsec.jws.signature.JWTSig
 import tsec.jwt.JWTClaims
-import tsec.signature.jca.{GeneralSignatureError, SHA256withECDSA}
+import tsec.signature.jca.{GeneralSignatureError, SHA256withECDSA, SigPrivateKey, SigPublicKey}
 
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-// TODO review error handling
 class JwtTokens[F[_]: Sync](
   conf: JwtConfig,
   clock: Clock[F],
 ) extends Tokens[F] {
 
-  override def verifyToken(token: User.Token): EitherT[F, TokenVerificationError, User.Id] = {
-    val pubKeyBytes = conf.publicKey
-      .b64Bytes
-      .getOrElse(Array.empty)
-
-    val verified = for {
-      pubKey <- SHA256withECDSA.buildPublicKey[F](pubKeyBytes)
-      verified <- JWTSig.verifyK[F, SHA256withECDSA](token.value, pubKey)
+  override def verifyToken(token: User.Token): EitherT[F, UnableToVerifyToken.type, User.Id] = {
+    val verify = for {
+      publicKey <- buildPublicKey()
+      verified <- JWTSig.verifyK[F, SHA256withECDSA](token.value, publicKey)
       userId = verified.body.subject.getOrElse("")
     } yield User.Id(UUID.fromString(userId))
 
     EitherT {
-      verified
-        .adaptError { case GeneralSignatureError(s) => TokenVerificationError(s) }
-        .attemptNarrow[TokenVerificationError]
+      verify
+        .adaptError { case GeneralSignatureError(_) => UnableToVerifyToken }
+        .attemptNarrow[UnableToVerifyToken.type]
     }
   }
 
   override def generateToken(id: User.Id): F[User.Token] =
     for {
-      privateKeyBytes <- Sync[F].delay {
-        conf.privateKey.b64Bytes.toRight(UnableToDecodeJwtPrivateKey)
-      }.rethrow
-      privateKey <- SHA256withECDSA.buildPrivateKey[F](privateKeyBytes)
+      privateKey <- buildPrivateKey()
       claims <- buildClaims(id)
       jwtSignature <- JWTSig.signAndBuild[F, SHA256withECDSA](claims, privateKey)
     } yield User.Token(jwtSignature.toEncodedString)
+
+  private def buildPublicKey(): F[SigPublicKey[SHA256withECDSA]] =
+    Sync[F]
+      .fromEither(conf.publicKey.b64Bytes.toRight(UnableToDecodeJwtPublicKey))
+      .flatMap(SHA256withECDSA.buildPublicKey[F])
+
+  private def buildPrivateKey(): F[SigPrivateKey[SHA256withECDSA]] =
+    Sync[F]
+      .fromEither(conf.privateKey.b64Bytes.toRight(UnableToDecodeJwtPrivateKey))
+      .flatMap(SHA256withECDSA.buildPrivateKey[F])
 
   private def buildClaims(id: User.Id): F[JWTClaims] =
     for {
@@ -64,4 +66,5 @@ class JwtTokens[F[_]: Sync](
 
 object JwtTokens {
   case object UnableToDecodeJwtPrivateKey extends Throwable
+  case object UnableToDecodeJwtPublicKey extends Throwable
 }

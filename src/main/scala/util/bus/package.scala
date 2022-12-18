@@ -1,9 +1,9 @@
 package org.whsv26.tapir
 package util
 
-import cats.effect.kernel.Async
 import cats.syntax.functor._
-import cats.syntax.traverse._
+import cats.syntax.parallel._
+import cats.{Functor, Parallel}
 
 import scala.reflect.ClassTag
 
@@ -72,7 +72,7 @@ package object bus {
   }
 
   object Mediator {
-    class Impl[F[_]: Async](
+    class Impl[F[_]: Functor: Parallel](
       requestHandlers: Set[RequestHandlerBase[F]],
       notificationHandlers: Set[NotificationHandlerBase[F]],
     ) extends Mediator[F] {
@@ -92,7 +92,7 @@ package object bus {
 
       override def publish(notification: Notification): F[Unit] =
         notificationHandlersMap(notification.getClass)
-          .traverse { handler =>
+          .parTraverse { handler =>
             handler
               .asInstanceOf[NotificationHandler[F, Notification]]
               .handle(notification)

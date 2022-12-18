@@ -43,6 +43,6 @@ package object security {
   ): User.Token => F[Either[ApiError, User.Id]] =
     token =>
       tokens.verifyToken(token)
-        .leftMap(err => ApiError(StatusCode.Unauthorized, err.cause))
+        .leftMap(_ => ApiError(StatusCode.Unauthorized, "Unable to verify token"))
         .value
 }
