@@ -1,7 +1,12 @@
 package org.whsv26.tapir
 package modules
 
-// TODO: get product net from different module
+import util.bus.Command
+
 package object orders {
+  case class CreateLead(
+    client: Client,
+    items: List[LeadItem],
+  ) extends Command[Unit]
 
 }

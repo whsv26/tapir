@@ -6,7 +6,6 @@ import modules.auth.User.{PasswordHash, PlainPassword}
 
 import cats.Monad
 import cats.data.{EitherT, OptionT}
-import cats.effect.kernel.{Resource, Sync}
 import cats.syntax.functor._
 
 final class AuthService[F[_]: Monad](

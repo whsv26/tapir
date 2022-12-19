@@ -17,13 +17,14 @@ import sttp.tapir.json.circe.jsonBody
 class CreateJwtTokenEndpoint[F[_]: Sync](auth: AuthService[F]) {
   lazy val route: PublicServerRoute[F, CreateJwtToken, User.Token] =
     CreateJwtTokenEndpoint.route
-      .serverLogic[F] { in => auth
-        .signIn(User.Name(in.name), PlainPassword(in.password))
-        .leftMap {
-          case UserNotFound(name) => UserNotFoundApiError(name)
-          case InvalidPassword => InvalidPasswordApiError.apply
-        }
-        .value
+      .serverLogic[F] { in =>
+        auth
+          .signIn(User.Name(in.name), PlainPassword(in.password))
+          .leftMap {
+            case UserNotFound(name) => UserNotFoundApiError(name)
+            case InvalidPassword => InvalidPasswordApiError.apply
+          }
+          .value
       }
 }
 

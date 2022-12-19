@@ -13,6 +13,7 @@ import java.util.UUID
 case class User(
   id: User.Id,
   name: User.Name,
+  email: User.Email,
   password: PasswordHash
 )
 
@@ -20,6 +21,8 @@ object User {
   @newtype case class Id(value: UUID)
 
   @newtype case class Name(value: String)
+
+  @newtype case class Email(value: String)
 
   @newtype case class PlainPassword(value: String)
 

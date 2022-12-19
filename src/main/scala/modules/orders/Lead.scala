@@ -1,24 +1,26 @@
 package org.whsv26.tapir
 package modules.orders
 
-import doobie.util.Read
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import enumeratum.{CirceEnum, Enum, EnumEntry}
 import io.circe.{Decoder, Encoder}
 import io.estatico.newtype.macros.newtype
-import sttp.tapir.Schema
+import squants.market.Money
 
 import java.util.UUID
 
-case class Product(
-  id: Product.Id,
-  name: String,
-  price: BigDecimal
+/**
+ * Clicking on an internet ad for your product
+ * and filling in a form
+ */
+case class Lead(
+  id: Lead.Id,
+  status: LeadStatus,
+  client: Client,
+  items: List[LeadItem],
+  total: Money
 )
 
-object Product {
-  implicit val encoder: Encoder[Product] = deriveEncoder[Product]
-  implicit val decoder: Decoder[Product] = deriveDecoder[Product]
-
+object Lead {
   @newtype case class Id(value: UUID)
 
   object Id {

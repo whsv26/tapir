@@ -18,7 +18,7 @@ trait Hasher[F[_]] {
 
 object Hasher {
   class BCryptImpl[F[_] : Sync](
-    rounds: Int@Id("rounds")
+    rounds: Int @Id("rounds")
   ) extends Hasher[F] {
 
     override def hashPassword(password: PlainPassword): F[PasswordHash] =
@@ -34,11 +34,11 @@ object Hasher {
 
   class SHA256Impl[F[_]: Sync] extends Hasher[F] {
     override def hashPassword(password: PlainPassword): F[PasswordHash] =
-      SHA256.hash[F](password.value.utf8Bytes)
+      SHA256
+        .hash[F](password.value.utf8Bytes)
         .map(bytes => PasswordHash(bytes.toB64String))
 
     override def verifyPassword(password: PlainPassword, hash: PasswordHash): F[Boolean] =
-      hashPassword(password)
-        .map(_ == hash)
+      hashPassword(password).map(_ == hash)
   }
 }

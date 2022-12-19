@@ -32,22 +32,21 @@ package object bus {
 
   trait NotificationHandlerBase[F[_]] {
     type In <: Notification
-    implicit def tag: ClassTag[In]
     def handle: In => F[Unit]
+    def tag: ClassTag[In]
   }
 
   abstract class NotificationHandler[F[_], N <: Notification](implicit
     notificationTag: ClassTag[N]
   ) extends NotificationHandlerBase[F] {
     override type In = N
-    override implicit def tag: ClassTag[In] = notificationTag
+    override def tag: ClassTag[In] = notificationTag
   }
 
   trait RequestHandlerBase[F[_]] {
     type In <: Request
-    final type Out = In#Out
+    def handle: In => F[In#Out]
     def tag: ClassTag[In]
-    def handle: In => F[Out]
   }
 
   trait RequestHandler[F[_], R <: Request] extends RequestHandlerBase[F] {

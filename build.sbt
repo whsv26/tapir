@@ -18,6 +18,7 @@ val chimneyVersion = "0.6.2"
 val doobieVersion = "1.0.0-RC1"
 val mouseVersion = "1.2.1"
 val distageVersion = "1.1.0-M11"
+val squantsVersion = "1.8.3"
 
 lazy val root = (project in file("."))
   .settings(
@@ -79,6 +80,10 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-postgres" % doobieVersion,
 
   "org.typelevel" %% "mouse" % mouseVersion,
+  "org.typelevel" %% "squants" % squantsVersion,
 
-  "io.7mind.izumi" %% "distage-core" % distageVersion
+  "io.7mind.izumi" %% "distage-core" % distageVersion,
+
+  "com.beachape" %% "enumeratum" % "1.7.2",
+  "com.beachape" %% "enumeratum-circe" % "1.7.2"
 )
