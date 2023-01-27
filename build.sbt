@@ -85,5 +85,10 @@ libraryDependencies ++= Seq(
   "io.7mind.izumi" %% "distage-core" % distageVersion,
 
   "com.beachape" %% "enumeratum" % "1.7.2",
-  "com.beachape" %% "enumeratum-circe" % "1.7.2"
+  "com.beachape" %% "enumeratum-circe" % "1.7.2",
+
+  "org.scalactic" %% "scalactic" % "3.2.15",
+  "org.scalatest" %% "scalatest" % "3.2.15" % "test",
+  "org.typelevel" %% "cats-effect-testing-scalatest" % "1.4.0" % Test
+
 )
